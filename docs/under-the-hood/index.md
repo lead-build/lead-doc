@@ -18,7 +18,7 @@ We will go through how to modularize for:
 - multiple languages and code generation
 
 All in the same build configuration, by using the constructs available in
-[lead-build](https://lead-build.readthedocs.io).
+[the language description](../language/index.md).
 
 To achieve that goal, one concept at a time needs to be introduced, which is
 why the concept of "pills" is used. The first pill starts small and
