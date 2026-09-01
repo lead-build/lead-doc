@@ -1,1 +1,8 @@
 /.venv
+
+*.o
+*.d
+*.ninja
+.ninja_log
+out
+build

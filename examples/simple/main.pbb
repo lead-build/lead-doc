@@ -1,0 +1,17 @@
+|{ cwd, include, ... }|
+let
+    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
+in
+lib.build [
+    lib.lang.c.app_build "hello_world",
+    lib.lang.config.simple "${cwd}",
+    lib.lang.c.mod {
+        src = [
+            "${cwd}/src/main.c",
+            "${cwd}/src/lib.c",
+        ];
+        inc = [
+            "${cwd}/src/"
+        ];
+    },
+]
