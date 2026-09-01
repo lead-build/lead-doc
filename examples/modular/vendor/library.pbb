@@ -1,0 +1,10 @@
+|{ cwd, ... }|
+| lib |
+lib.lang.c.mod {
+    src = [
+        "${cwd}/lib.c",
+    ];
+    inc = [
+        "${cwd}/",
+    ];
+}

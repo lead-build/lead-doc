@@ -37,7 +37,55 @@ lib.build [
 Note some parts: The build is generic, it is *configured* to contain C and a C
 output. And it has no globals.
 
-That means it can be extensible
+That means it can be extensible. So what happens if it grows?
+
+```pbb
+|{ cwd, include, ... }|
+let
+    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
+
+    my_app = lib.merge [
+        lib.lang.config.simple "${cwd}",
+        lib.lang.c.mod {
+            src = [
+                "${cwd}/src/main.c",
+            ];
+        },
+        include "${cwd}/vendor/library.pbb" lib,
+    ];
+in
+lib.tk.flatten [
+     # Build for release with optimization
+    lib.build [
+        lib.lang.c.app_build "hello_world",
+        my_app,
+        | _ |{
+            c = {
+                cflags = [
+                    "-O3",
+                ];
+            };
+        },
+    ],
+
+     # Build for debug with no optimization and debug symbols
+    lib.build [
+        lib.lang.c.app_build "hello_debug",
+        my_app,
+        | _ |{
+            c = {
+                cflags = [
+                    "-O0",
+                    "-g",
+                ];
+            };
+        },
+    ],
+]
+```
+
+Shows how it can easily be extended to simply include vendored modules, do
+parallell builds with different build flags and targets.
 
 
 ## Installation
