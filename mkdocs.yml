@@ -5,6 +5,10 @@ site_description: Lead - Declarative build environment
 theme:
   name: readthedocs
 
+markdown_extensions:
+  - codehilite:
+      guess_lang: false
+
 nav:
   - Home: index.md
 

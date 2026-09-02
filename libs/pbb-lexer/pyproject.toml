@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lead-pbb-lexer"
+version = "0.1.0"
+description = "Pygments lexer for Lead Build files"
+dependencies = ["Pygments>=2.16"]
+
+[project.entry-points."pygments.lexers"]
+lead-build = "lead_pbb_lexer:PbbLexer"
+
+[tool.setuptools]
+py-modules = ["lead_pbb_lexer"]
