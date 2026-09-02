@@ -4,10 +4,15 @@ site_description: Lead - Declarative build environment
 
 theme:
   name: readthedocs
+  highlightjs: false
 
 markdown_extensions:
+  - fenced_code
   - codehilite:
       guess_lang: false
+
+extra_css:
+  - stylesheets/pygments.css
 
 nav:
   - Home: index.md

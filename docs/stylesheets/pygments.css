@@ -1,0 +1,63 @@
+.codehilite .c,
+.codehilite .ch,
+.codehilite .cm,
+.codehilite .c1,
+.codehilite .cs {
+    color: #408080;
+    font-style: italic;
+}
+
+.codehilite .k,
+.codehilite .kc,
+.codehilite .kd,
+.codehilite .kn,
+.codehilite .kp,
+.codehilite .kr,
+.codehilite .kt {
+    color: #008000;
+    font-weight: bold;
+}
+
+.codehilite .n {
+    color: #000000;
+}
+
+.codehilite .m,
+.codehilite .mb,
+.codehilite .mf,
+.codehilite .mh,
+.codehilite .mi,
+.codehilite .mo {
+    color: #666666;
+}
+
+.codehilite .o,
+.codehilite .ow {
+    color: #666666;
+}
+
+.codehilite .p {
+    color: #000000;
+}
+
+.codehilite .s,
+.codehilite .sa,
+.codehilite .sb,
+.codehilite .sc,
+.codehilite .dl,
+.codehilite .sd,
+.codehilite .s2,
+.codehilite .se,
+.codehilite .sh,
+.codehilite .si,
+.codehilite .sx,
+.codehilite .sr,
+.codehilite .s1,
+.codehilite .ss {
+    color: #BA2121;
+}
+
+.codehilite .err {
+    color: #a40000;
+    border: 1px solid #a40000;
+}
