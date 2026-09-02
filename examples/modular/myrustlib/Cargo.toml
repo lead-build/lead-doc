@@ -1,0 +1,18 @@
+[package]
+name = "myrustlib"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["staticlib"]
+
+[profile.release]
+panic = "abort"
+
+[profile.dev]
+panic = "abort"
+
+[dependencies]
+
+[build-dependencies]
+cbindgen = "0.29.4"

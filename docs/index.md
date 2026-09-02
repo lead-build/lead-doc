@@ -40,46 +40,52 @@ output. And it has no globals.
 That means it can be extensible. So what happens if it grows?
 
 ```pbb
+
 |{ cwd, include, ... }|
 let
     lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
 
     my_app = lib.merge [
-        lib.lang.config.simple "${cwd}",
         lib.lang.c.mod {
             src = [
                 "${cwd}/src/main.c",
             ];
         },
+
+         # Maybe some rust with your C?
+        lib.lang.rust.mod {
+            name = "myrustlib";
+            dir = "${cwd}/myrustlib";
+        },
+
+         # Maybe some external or internal library with your code?
         include "${cwd}/vendor/library.pbb" lib,
     ];
 in
 lib.tk.flatten [
+
      # Build for release with optimization
     lib.build [
+        lib.lang.config.simple "${cwd}",
         lib.lang.c.app_build "hello_world",
-        my_app,
-        | _ |{
-            c = {
-                cflags = [
-                    "-O3",
-                ];
-            };
+        lib.lang.c.config {
+            cflags = [ "-O3" ];
         },
+        my_app,
     ],
 
      # Build for debug with no optimization and debug symbols
+
     lib.build [
+        lib.lang.config.simple "${cwd}",
         lib.lang.c.app_build "hello_debug",
-        my_app,
-        | _ |{
-            c = {
-                cflags = [
-                    "-O0",
-                    "-g",
-                ];
-            };
+        lib.lang.c.config {
+            cflags = [
+                "-O0",
+                "-g"
+            ];
         },
+        my_app,
     ],
 ]
 ```
