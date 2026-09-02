@@ -20,7 +20,7 @@ Check out the git repository at [https://github.com/lead-build/lead-build](https
 Lead Lib provides reusable build patterns and language helpers. Checkout the repository as a submodule to your project:
 
 ```bash
-git submodule add https://github.com/lead-build/lead-lib.git vendor/lead-lib
+git submodule add https://github.com/lead-build/lead-lib.git lead-lib
 ```
 
 ## Quick Start
@@ -59,18 +59,12 @@ This creates a simple C application build. Let's break down what's happening:
 To generate a Ninja build file and run the build:
 
 ```bash
-pb -i main.pbb -o build.ninja
-ninja -f build.ninja
-```
-
-To evaluate the build file without generating output (useful for debugging):
-
-```bash
-pb -E -i main.pbb
+pb
+ninja
 ```
 
 ## Next Steps
 
-- Learn the [Lead Build Language](language/index.md) to understand the core concepts
 - Explore the [Cookbook](cookbook/index.md) for common build patterns
+- Learn the [Lead Build Language](language/index.md) to understand the core concepts
 - Dive into [Lead Lib internals](under-the-hood/index.md) for advanced usage

@@ -1,14 +1,14 @@
 |{ cwd, include, ... }|
 let
     lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
-    mylib = include "${cwd}/vendor/mylib/library.pbb" lib;
+    mathlib = include "${cwd}/lib/mathlib/mathlib.pbb" lib;
     
     my_app = lib.merge [
         lib.lang.c.mod {
             src = [ "${cwd}/src/main.c" ];
             inc = [ "${cwd}/src/" ];
         },
-        mylib,
+        mathlib,
     ];
 in
 lib.build [

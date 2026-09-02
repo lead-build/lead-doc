@@ -53,8 +53,8 @@ This approach avoids duplicating source file lists while allowing each target to
 Generate and run your build:
 
 ```bash
-pb -i main.pbb -o build.ninja
-ninja -f build.ninja
+pb
+ninja
 ```
 
 You'll get two executables: `my_app_release` (optimized) and `my_app_debug` (with debug symbols).
@@ -91,5 +91,5 @@ lib.tk.flatten [
 ## See Also
 
 - [Simple C Application](simple-c-app.md) — Start here if you're new
-- [Using Vendored Libraries](vendored-libraries.md) — Combine this with libraries
+- [Splitting Into Libraries](splitting-into-libraries.md) — Combine this with libraries
 - [Mixing Languages: C and Rust](c-and-rust.md) — Multiple languages with multiple targets

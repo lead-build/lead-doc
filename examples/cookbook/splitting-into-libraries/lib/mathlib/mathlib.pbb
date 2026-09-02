@@ -2,7 +2,7 @@
 | lib |
 lib.lang.c.mod {
     src = [
-        "${cwd}/src/mylib.c",
+        "${cwd}/src/mathlib.c",
     ];
     inc = [
         "${cwd}/src/",

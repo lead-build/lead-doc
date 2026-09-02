@@ -15,7 +15,7 @@ nav:
     - "Simple C Application": cookbook/simple-c-app.md
     - "Multiple Targets": cookbook/multiple-targets.md
     - "Mixing C and Rust": cookbook/c-and-rust.md
-    - "Vendored Libraries": cookbook/vendored-libraries.md
+    - "Splitting Into Libraries": cookbook/splitting-into-libraries.md
 
   - "Lead Language":
     - "Intro": language/index.md

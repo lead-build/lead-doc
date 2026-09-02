@@ -30,17 +30,15 @@ lib.build [
 
 - `lib.lang.c.app_build "my_app"` — Declares we're building a C application named "my_app"
 - `lib.lang.config.simple "${cwd}"` — Sets up basic configuration for the project
-- `lib.lang.c.mod` — Defines the C module with:
-  - `src` — List of source files to compile
-  - `inc` — Include paths for the compiler
+- `lib.lang.c.mod` — Defines the C module
 
 ## Running the Build
 
 Generate and run your build:
 
 ```bash
-pb -i main.pbb -o build.ninja
-ninja -f build.ninja
+pb
+ninja
 ```
 
 The output binary will be placed in the build directory.

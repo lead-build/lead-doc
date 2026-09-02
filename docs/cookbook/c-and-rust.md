@@ -104,8 +104,8 @@ int main() {
 ## Running the Build
 
 ```bash
-pb -i main.pbb -o build.ninja
-ninja -f build.ninja
+pb
+ninja
 ```
 
 ## Advanced: Multiple Rust Libraries
