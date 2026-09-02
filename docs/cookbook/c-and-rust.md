@@ -2,8 +2,6 @@
 
 Combine Rust and C code in a single project, with C calling Rust libraries.
 
-**When to use:** Leveraging Rust for performance-critical or safety-critical components while keeping existing C code.
-
 ## Example
 
 ```pbb
@@ -31,11 +29,9 @@ lib.build [
 
 ## How It Works
 
-- `lib.merge` — Combines multiple language modules into a single build target
-- `lib.lang.c.mod` — The C module with your C code
-- `lib.lang.rust.mod` — The Rust module that generates a library
-  - `name` — The Rust crate name
-  - `dir` — Path to the Rust project (containing `Cargo.toml`)
+* `lib.merge` — Combines multiple language modules into a single build target
+* `lib.lang.c.mod` — The C module with your C code
+* `lib.lang.rust.mod` — The Rust module that generates a library
 
 When compiled, Lead Build will:
 
@@ -61,44 +57,90 @@ Typical directory layout:
     └── lead-lib/               # Lead Lib submodule
 ```
 
-## Using cbindgen
+## Crate structure
 
-To make Rust code callable from C, use `cbindgen`:
+To make Rust code callable from C, use `cbindgen` to build the bindings and
+link the library as a `"staticlib"`
 
 **myrustlib/Cargo.toml:**
 ```toml
+
+[lib]
+crate-type = ["staticlib"]
+
+...
+
 [build-dependencies]
 cbindgen = "0.24"
 ```
 
+To generate the header file in the correct location to match the integration,
+update `build.rs` based on:
+
 **myrustlib/build.rs:**
 ```rust
-use cbindgen::Language;
+extern crate cbindgen;
+
+use std::{env, path::PathBuf};
 
 fn main() {
-    cbindgen::generate(".")
-        .expect("cbindgen failed")
-        .write_to_file("target/myrustlib.h");
+    let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+
+    // CBINDGEN_HEADER_OUTPUT if is relative, should be relative to PWD, not
+    // CARGO_MANIFEST_DIR, to match structure of ninja build.
+    let pwd = PathBuf::from(env::var("PWD").unwrap());
+    let header_name = PathBuf::from(env::var("CBINDGEN_HEADER_OUTPUT").unwrap());
+    let header_path = pwd.join(&header_name);
+  
+
+    cbindgen::Builder::new()
+        .with_crate(&crate_dir)
+        .with_config(cbindgen::Config::from_root_or_default(&crate_dir))
+        .generate()
+        .expect("Unable to generate bindings")
+        .write_to_file(&header_path);
 }
+
 ```
+
+Some extra boilerplate is needed in `lib.rs` to allow for the integration. As a
+starting point, this will suffice:
 
 **myrustlib/src/lib.rs:**
 ```rust
-#[no_mangle]
-pub extern "C" fn my_function(x: i32) -> i32 {
-    x * 2
+#![no_std]
+#![no_main]
+
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    loop {}
 }
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rust_eh_personality() {}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn add_in_rust(a: i32, b: i32) -> i32 {
+    a + b
+}
+
 ```
+
+Rust integration then updates the include path for the c integration, and the
+rust library will be available with a header file to include, and access the
+exported functions.
 
 **src/main.c:**
 ```c
-#include "../myrustlib/target/myrustlib.h"
+#include "myrustlib.h"
+#include <stdio.h>
 
 int main() {
-    int result = my_function(21);
-    printf("Result: %d\n", result);
+    printf("C and Rust Example\n");
+    printf("Calling Rust function: add_in_rust(10, 20) = %d\n", add_in_rust(10, 20));
     return 0;
 }
+
 ```
 
 ## Running the Build
