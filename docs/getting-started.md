@@ -30,7 +30,7 @@ Here's a minimal example of a Lead Build project:
 ```pbb
 |{ cwd, include, ... }|
 let
-    lib = include "${cwd}/vendor/lead-lib/lead-lib.pbb" { };
+    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
 in
 lib.build [
     lib.lang.c.app_build "my_app",
