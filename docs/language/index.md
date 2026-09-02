@@ -8,7 +8,7 @@ To be able to test how complex evaluations work, it is possible to evaluate an e
 
 To evaluate a file, for example:
 
-```lead
+```pbb
 |{...}|
 let
   a = 13;
@@ -26,7 +26,7 @@ pb -E -i myfile.pbb
 
 It should output something similar to:
 
-```lead
+```pbb
 {
   variable = 13;
 }

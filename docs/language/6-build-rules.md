@@ -21,7 +21,7 @@ When the rule is emitted to Ninja, the Lead variables `input` and `output` are m
 
 A simple example, which compiles a file to an object file with dependency tracking:
 
-```
+```pbb
 rule_compile = pb.rule |{input, output, ...}|
     {
         command = ["gcc", "-c", "-o", output, "-MMD", "-MF", "${output}.d", input];
@@ -30,7 +30,7 @@ rule_compile = pb.rule |{input, output, ...}|
 ```
 
 will generate a rule:
-```
+```ninja
 rule gcc_c_o_MMD
   command = gcc -c -o ${out} -MMD -MF ${out}.d ${in}
   depfile = ${out}.d
@@ -51,7 +51,7 @@ When constructing a build, set the following fields in the rule call argument ob
 
 Minimal example:
 
-```lead
+```pbb
 |{pb, cwd, ...}|
 let
   cc_rule = pb.rule (|{input, output, ...}| {
@@ -81,7 +81,7 @@ build build/main.o: gcc_o_MMD_MF src/main.c
 
 The output produced by one rule invocation can be used as the input to another rule invocation. This creates a dependency chain, so the generated build graph ensures that the earlier build completes before the later one runs.
 
-```lead
+```pbb
 |{pb, cwd, ...}|
 let
   cc_rule = pb.rule (|{input, output, ...}| {

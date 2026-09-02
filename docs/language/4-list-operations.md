@@ -10,7 +10,7 @@ The language also supports a map-like iteration form for transforming collection
 
 The basic idea is:
 
-```lead
+```pbb
 [ |pattern| expression for source ]
 { |pattern| expression for source }
 [ |pattern| expression for source if |pattern| predicate ]
@@ -27,7 +27,7 @@ The basic idea is:
 
 Map expressions support an optional filter written after the source expression:
 
-```lead
+```pbb
 [ mapper for source if predicate ]
 { mapper for source if predicate }
 ```
@@ -41,31 +41,31 @@ Only items where the predicate evaluates to `true` are passed to the mapper.
 
 ### Filter a list map
 
-```lead
+```pbb
 [ |a| a * 2 for [1, 2, 3, 4] if |a| a < 3 ]
 ```
 
 This evaluates to:
 
-```lead
+```pbb
 [2, 4]
 ```
 
 ### Filter an object map
 
-```lead
+```pbb
 { |(k, v)| (k, v * 10) for {a=1; b=2; c=3;} if |(k, v)| v >= 2 }
 ```
 
 This evaluates to:
 
-```lead
+```pbb
 {b=20; c=30;}
 ```
 
 ### Map over a list, returning a list
 
-```lead
+```pbb
 [ |v| v + 3 for input_list ]
 ```
 
@@ -73,7 +73,7 @@ This applies the function `|v| v + 3` to each element of `input_list`. The resul
 
 ### Map over an object, returning a list
 
-```lead
+```pbb
 [ |(k, v)| v + 3 for input_object ]
 ```
 
@@ -81,7 +81,7 @@ When iterating over an object, each item is exposed as a pair of `(key, value)`.
 
 ### Map over a list, returning an object
 
-```lead
+```pbb
 { |v| (v, "value " + v) for list }
 ```
 
@@ -89,7 +89,7 @@ This form turns each list element into a key/value pair. The first element of th
 
 ### Map over an object, returning an object
 
-```lead
+```pbb
 { |(k, v)| (k, v + 3) for object }
 ```
 
@@ -103,7 +103,7 @@ A fold reduces a collection to a single value by repeatedly combining an accumul
 
 The general form is:
 
-```lead
+```pbb
 (|accumulator field| expression for initial: source)
 ```
 
@@ -114,19 +114,19 @@ The general form is:
 
 For example:
 
-```lead
+```pbb
 (|prev field| prev * 10 + field for 7: [1, 2, 3])
 ```
 
 This evaluates as:
 
-```lead
+```pbb
 (((7 * 10 + 1) * 10 + 2) * 10 + 3)
 ```
 
 and results in:
 
-```lead
+```pbb
 7123
 ```
 
@@ -134,7 +134,7 @@ and results in:
 
 The `initial:` part is optional. When omitted, the first element of the collection is used as the starting accumulator value, and folding continues over the remaining elements:
 
-```lead
+```pbb
 (|prev field| prev * 10 + field for [7, 1, 2, 3])
 ```
 
@@ -153,7 +153,7 @@ Because fold exposes both the accumulated state and the current item, it is well
 
 ### Fold examples: sum and product
 
-```lead
+```pbb
 # sum: adds all numbers in a list
 let
   sum = |lst| (|acc v| acc + v for 0: lst);
@@ -161,7 +161,7 @@ in
   sum [1, 2, 3, 4]    # => 10
 ```
 
-```lead
+```pbb
 # product: multiplies all numbers in a list
 let
   product = |lst| (|acc v| acc * v for 1: lst);

@@ -68,7 +68,7 @@ b = {
 Rewrites a path by replacing a directory prefix.
 
 Syntax:
-```lead
+```pbb
 pb.translate {
   input = path,
   from = path or [path, ...],
@@ -88,7 +88,7 @@ If `from` is a list, the first matching prefix is used.
 Converts a Lead path into a path value rebased to another filesystem base path.
 
 Syntax:
-```lead
+```pbb
 pb.rebase {
   path = path,
   base = path
@@ -105,7 +105,7 @@ Returns a path value that keeps the internal relative location of `path`, but ex
 Creates a new path value bound to the same file or directory, but with a fresh root boundary, so upward traversal (`..`) cannot escape above it.
 
 Syntax:
-```lead
+```pbb
 pb.lock path
 ```
 
@@ -118,7 +118,7 @@ File suffixes are rewritten using the `+` and `-` operators on a path, rather th
 - `path + string` appends `string` to the last path element.
 - `path - string` removes `string` from the end of the last path element, and fails if it isn't a suffix.
 
-```lead
+```pbb
 let
   source = cwd / "src" / "main.c";
   object = (source - ".c") + ".o";
@@ -132,7 +132,7 @@ in
 
 Creates a build-rule function describing how a build step should be performed. A rule captures the relevant inputs, outputs, and execution behavior for a single build action.
 
-```lead
+```pbb
 pb.rule |{input, output, ...}| {
   name = "compile";
   command = ["gcc", "-c", "-o", output, input];
@@ -143,7 +143,7 @@ Note: In `pb.rule`, object matcher defaults (for example, `|{input ? fallback, .
 
 The return value of `pb.rule` is callable. Call it with a build argument object to produce a build value; this is the only way to construct a build value, there is no separate `pb.build` builtin:
 
-```lead
+```pbb
 compile_rule {
   input = [cwd / "src" / "main.c"];
   output = cwd / "build" / "main.o";
@@ -165,7 +165,7 @@ evaluation.
 Attempts to evaluate the input expression, prints it, and returns it unchanged.
 
 Syntax:
-```lead
+```pbb
 dbg.trace expr
 ```
 
@@ -176,7 +176,7 @@ Behavior:
 - expressions without changing behavior.
 
 Example:
-```lead
+```pbb
 |{dbg, ...}|
 let
     x = dbg.trace (1 + 2);
@@ -192,7 +192,7 @@ Attempts to evaluate the input expression, prints it, and then raises a debug
 exception.
 
 Syntax:
-```lead
+```pbb
 dbg.break expr
 ```
 
@@ -205,7 +205,7 @@ Use `dbg.break` when you want evaluation to stop at a specific point and show
 the current value.
 
 Example:
-```lead
+```pbb
 |{dbg, ...}|
 let
     x = 1 + 2;

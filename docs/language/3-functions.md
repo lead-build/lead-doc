@@ -16,7 +16,7 @@ Invocations are done by referencing the function followed by the argument. For e
 
 For example:
 
-```lead
+```pbb
 let
   add_three = |x| x + 3;
 in
@@ -29,7 +29,7 @@ in
 
 This evaluates to:
 
-```lead
+```pbb
 {
   a = 4;
   b = 5;
@@ -43,7 +43,7 @@ Functions do not have to be stored in variables. It is valid to call them direct
 
 When declaring functions, values from the scope where they are declared may be referenced from the function.
 
-```lead
+```pbb
 let
   add_val = 3;
   add_three = |x| x + add_val;
@@ -71,7 +71,7 @@ It is also possible to leverage the concept of bound scopes, as described above,
 
 For example:
 
-```lead
+```pbb
 let
   add = |a| |b| (a + b);
 in
@@ -86,7 +86,7 @@ As syntactic sugar, it is possible to skip the middle `|`, writing multiple argu
 
 This makes it possible to create new functions where earlier arguments are already set. For example:
 
-```lead
+```pbb
 let
   add = |a b| a + b;
   add_three = add 3;
@@ -122,7 +122,7 @@ Any matcher, except single-name object matchers, can be combined with `matcher @
 
 For example:
 
-```lead
+```pbb
 let
   myfunc = |{name, ...} @ obj| { name = name; type = "obj"; inner = obj; };
 in
@@ -134,7 +134,7 @@ in
 
 This evaluates to:
 
-```lead
+```pbb
 {
   inner = {
     local_var = "something";
@@ -149,7 +149,7 @@ This shows that the original argument is copied in its entirety to `inner` in th
 
 This can also be applied to tuples:
 
-```lead
+```pbb
 let
   add = |(a, b)| a + b;
 in
@@ -160,7 +160,7 @@ This evaluates to `7`.
 
 Default values are especially useful for optional object fields in matcher patterns:
 
-```lead
+```pbb
 let
   add_with_default = |{a, b ? 12}| a + b;
 in
@@ -175,7 +175,7 @@ At this point, all the pieces are there to revisit the file header.
 
 Looking at the first example:
 
-```lead
+```pbb
 |{...}|
 let
   a = 13;
@@ -191,7 +191,7 @@ That is because the file itself contains a single pure statement. Any builtins a
 
 For example, to have access to the `include` function described later, it is possible to pattern match on the field `include` in the header:
 
-```lead
+```pbb
 |{include, ...}|
 ...
 ```

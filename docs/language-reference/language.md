@@ -54,7 +54,7 @@ Objects support `==`/`!=`: two objects are equal when they have the same set of
 keys and each corresponding value is equal.
 
 Example:
-```lead
+```pbb
 {
   src = "src";
   out = "build";
@@ -69,7 +69,7 @@ sequence of values of any type.
 Items are separated with `,`. Last element may have an optional trailing `,`.
 
 Example:
-```lead
+```pbb
 [
     "a.c",
     "b.c",
@@ -84,7 +84,7 @@ directories. Paths are built from builtin values such as `cwd` and are
 manipulated with the `/` operator.
 
 Example:
-```lead
+```pbb
 |{cwd, ...}|
 let
   src = cwd / "src" / "main.c";
@@ -98,7 +98,7 @@ Paths are locked to a given directory, and can never traverse outside of the
 directory.
 
 Failing example: `srcdir / ".."` will not work due to locking.
-```lead
+```pbb
 |{cwd, ...}|
 let
   srcdir = pb.lock (cwd / "src");
@@ -214,7 +214,7 @@ This means four combinations, plus the four with filter:
 
 Example with filtering:
 
-```lead
+```pbb
 [ |a| a * 2 for [1, 2, 3] if |a| a < 3 ]
 ```
 
@@ -222,7 +222,7 @@ Example with filtering:
 
 Switch expressions choose the first matching case from a series of value comparisons.
 
-```lead
+```pbb
 switch arch {
   "x86_64" => "desktop";
   "riscv64" => "embedded";
@@ -232,7 +232,7 @@ switch arch {
 
 The general shape is:
 
-```lead
+```pbb
 switch expr {
   matcher => result;
   _ => default_result;

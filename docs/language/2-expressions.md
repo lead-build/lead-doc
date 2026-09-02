@@ -20,7 +20,7 @@ Every expression evaluates to exactly one value, but that value may be a compoun
 
 The simplest expressions are literal values of any of the types introduced in the previous chapter:
 
-```lead
+```pbb
 42
 "hello"
 true
@@ -60,7 +60,7 @@ An expression can also be computed by using any of the builtin operators:
 
 Each field in a composite type may also be an expression. For example:
 
-```lead
+```pbb
 {
     name = "demo-" + "riscv64";
     version = (1, 0, 0);
@@ -74,7 +74,7 @@ Just a note: paths in the example above are just strings to illustrate the conce
 
 Lead-build also supports a `switch` expression for choosing between a small number of alternatives. The first matching case is used, and an optional `_ => ...` case can provide a default when nothing matches.
 
-```lead
+```pbb
 let
   arch = "riscv64";
 in
@@ -91,7 +91,7 @@ Each case is written as `matcher => expression;`. Matchers are compared against 
 
 The literal `null` represents the absence of a value. It is only equal to itself; comparing it to any other value with `==` is `false`, and with `!=` is `true`:
 
-```lead
+```pbb
 null == null   # true
 null == 1      # false
 null != 1      # true
@@ -103,7 +103,7 @@ Strings are written with double quotes. They are a basic literal type and can be
 
 Escape sequences inside strings are written with a backslash. For example:
 
-```lead
+```pbb
 "hello\nworld"
 "say \"hi\""
 ```
@@ -114,7 +114,7 @@ A comment starts when `#` appears outside a quoted string and continues to the e
 
 String interpolation can be used to embed expressions inside a string. Expressions inside `${...}` are evaluated and inserted into the string. For example:
 
-```lead
+```pbb
 let
   myvar = "world";
 in
@@ -125,7 +125,7 @@ This evaluates to the concatenation `"hello" + myvar`, so the result is `"hello 
 
 When the field name is computed at runtime, use `obj.{expr}`. The expression inside braces must evaluate to a string key.
 
-```lead
+```pbb
 let
   key = "name";
   obj = { name = "demo"; };
@@ -145,7 +145,7 @@ The variables can then be used in subsequent set statements and in the final exp
 
 For example:
 
-```lead
+```pbb
 let
     name = "demo";
     major_version = 1;
@@ -176,7 +176,7 @@ in
 
 This evaluates to:
 
-```lead
+```pbb
 {
   name = "demo-riscv64";
   sources = [

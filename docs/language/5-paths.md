@@ -21,7 +21,7 @@ Paths can be passed, as all values, as arguments to functions. For example, it i
 
 Use the `/` operator to move down into a directory or file name:
 
-```lead
+```pbb
 |{cwd, ...}|
 let
   src = cwd / "src";
@@ -38,7 +38,7 @@ The right-hand side of `/` must be a string representing a child name.
 
 You can also move upward using the special segment `".."`:
 
-```lead
+```pbb
 |{cwd, ...}|
 let
   src = cwd / "src";
@@ -54,7 +54,7 @@ This returns the parent directory of `src`, but not above the original `cwd` ori
 
 The builtin `pb` contains a function called `lock` that creates a new path value bound to the same file or directory, but with a fresh root boundary.
 
-```lead
+```pbb
 |{cwd, pb, ...}|
 let
   locked = pb.lock (cwd / "src");
@@ -70,7 +70,7 @@ In this example, `locked` refers to the same directory as `cwd / "src"`, but its
 
 Use the builtin `pb.translate` to rewrite a path by replacing one directory prefix with another. The argument is an object with `input`, `from`, and `to` fields. `input` is the path to rewrite, `from` is either one base directory or a list of base directories that may contain `input`, and `to` is the directory that should replace the matching prefix.
 
-```lead
+```pbb
 |{cwd, pb, ...}|
 let
   src = cwd / "src" / "main.c";
@@ -87,7 +87,7 @@ This produces a path rooted at `cwd / "build" / "main.c"`, where the `src` prefi
 
 When `from` is a list, `pb.translate` checks candidates in order and uses the first one that matches.
 
-```lead
+```pbb
 |{cwd, pb, ...}|
 let
   file = cwd / "lib" / "src" / "main.c";
@@ -104,7 +104,7 @@ in
 
 File suffixes are rewritten using the `+` and `-` operators, rather than a dedicated builtin. `path + string` appends `string` to the last path element, and `path - string` removes `string` from the end of the last path element (failing if it isn't a suffix of it).
 
-```lead
+```pbb
 |{cwd, ...}|
 let
   source = cwd / "src" / "main.c";
@@ -119,7 +119,7 @@ This rewrites `main.c` to `main.o`.
 
 Use the builtin `pb.rebase` to express a path under another base path while preserving its relative location.
 
-```lead
+```pbb
 |{cwd, pb, ...}|
 let
   src = cwd / "src" / "main.c";

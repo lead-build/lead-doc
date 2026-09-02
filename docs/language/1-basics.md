@@ -26,7 +26,7 @@ Those include:
 
 Lead-build supports line comments that start with `#` and continue to the end of the line.
 
-```lead
+```pbb
 # This is a full-line comment
 {
     name = "demo"; # This is a trailing comment
@@ -35,7 +35,7 @@ Lead-build supports line comments that start with `#` and continue to the end of
 
 If `#` appears inside a string literal, it is treated as normal string content, not as a comment start.
 
-```lead
+```pbb
 "value#part"
 ```
 
@@ -43,13 +43,13 @@ If `#` appears inside a string literal, it is treated as normal string content, 
 
 Objects are the primary data structure in the language. They group named fields into a single value. An object is written using braces `{ ... }`, with each field defined as:
 
-```lead
+```pbb
 field_name = expression;
 ```
 
 The field name can be either an identifier or a quoted string. This is useful when a key contains characters that are not valid in identifiers.
 
-```lead
+```pbb
 {
     "compiler-flags" = ["-O2", "-Wall"];
     normal_name = 1;
@@ -58,7 +58,7 @@ The field name can be either an identifier or a quoted string. This is useful wh
 
 Here is a simple example:
 
-```lead
+```pbb
 {
     name = "value as string";
     int_field = 131;
@@ -80,13 +80,13 @@ Each field ends with a semicolon. Fields are unordered; later chapters will expl
 
 A list is an ordered collection of values. Lists are written using square brackets (`[` / `]`), and values are separated with a comma (`,`):
 
-```lead
+```pbb
 [1, 2, 3]
 ```
 
 Lists can contain any type of expression, including objects:
 
-```lead
+```pbb
 [
     1,
     "hello",
@@ -98,7 +98,7 @@ Lists can contain any type of expression, including objects:
 
 Tuples are lightweight, fixed-size groupings of values. They are written using parentheses:
 
-```lead
+```pbb
 (123, 23, 12)
 ```
 
@@ -112,6 +112,6 @@ Tuples are also used to represent keys and values when iterating over objects. M
 
 Tuples can also contain any expression:
 
-```lead
+```pbb
 ("x", 42, { nested = true; })
 ```
