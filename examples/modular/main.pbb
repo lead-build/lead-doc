@@ -4,6 +4,8 @@ let
     lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
 
     my_app = lib.merge [
+        
+        # Add a global C module, with source files and include paths
         lib.lang.c.mod {
             src = [
                 "${cwd}/src/main.c",

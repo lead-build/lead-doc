@@ -1,18 +1,41 @@
 # Lead Build
 
-Lead Build is a declarative build system for expressing build outputs in terms of their dependencies. A path value may refer to either a file or a directory. Instead of scripting a sequence of commands, Lead Build describes the desired result and how it is composed.
+Lead Build is a **declarative build system** for expressing build outputs in terms of their dependencies. Instead of scripting commands in sequence, you describe the desired result and how it is composed.
 
-## Why Lead Build
+A path value may refer to either a file or a directory, and the system automatically handles the dependencies between them.
 
-- Declarative: describe *what* to build, not *how* to build it.
-- Modular: build logic can be packaged and reused across projects.
-- Reusable: common build patterns can be shared without duplicating file paths or command sequences.
+## Why Lead Build?
+
+- **Declarative**: Describe *what* to build, not *how* to build it.
+- **Modular**: Build logic can be packaged and reused across projects without copying.
+- **Pure**: Each build depends on its input parameters only—no global state—enabling multiple variants in a single configuration.
+- **Extensible**: Easily combine multiple languages, targets, and configurations without rewriting the build from scratch.
+
+## Key Concepts
+
+### Purity
+
+Lead Build is *pure* in the functional programming sense—with no side effects. This means:
+
+- Each build is a **pure function** of its input parameters
+- The same inputs always produce the same outputs
+- There is no hidden global state, environment variables that affect behavior, or implicit dependencies
+- What you see in your configuration is exactly what you get—nothing hidden or implicit
+
+### Lead Build (the language)
+A small, powerful declarative language for describing build outputs. Learn the syntax and concepts in the [Lead Language](language/index.md) guide.
+
+### Lead Lib (the library)
+A collection of conventions and helpers that turn the bare language into a practical build system. It provides:
+
+- Standardized build patterns and module interfaces
+- Language helpers for C, Rust, and more
+- Tools for combining multiple modules and targets
+- Support for code generation, cross-compilation, and hierarchical linking
 
 ## Example
 
-So how does it look like then?
-
-All examples can be seen in the [git repository](https://github.com/lead-build/lead-doc).
+So what does it look like?
 
 ```pbb
 |{ cwd, include, ... }|
@@ -34,79 +57,22 @@ lib.build [
 ]
 ```
 
-Note some parts: The build is generic, it is *configured* to contain C and a C
-output. And it has no globals.
+Or if you want more, checkout the examples under the cookbook.
 
-That means it can be extensible. So what happens if it grows?
+## Getting Started
 
-```pbb
+New to Lead Build? Start here:
 
-|{ cwd, include, ... }|
-let
-    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
+1. **[Getting Started](getting-started.md)** — Installation and a quick walkthrough
+2. **[Cookbook](cookbook/index.md)** — Common build patterns with examples
+3. **[Lead Language](language/index.md)** — Learn the language from the ground up
 
-    my_app = lib.merge [
-        lib.lang.c.mod {
-            src = [
-                "${cwd}/src/main.c",
-            ];
-        },
+## Going Deeper
 
-         # Maybe some rust with your C?
-        lib.lang.rust.mod {
-            name = "myrustlib";
-            dir = "${cwd}/myrustlib";
-        },
+Once you're comfortable with the basics:
 
-         # Maybe some external or internal library with your code?
-        include "${cwd}/vendor/library.pbb" lib,
-    ];
-in
-lib.tk.flatten [
-
-     # Build for release with optimization
-    lib.build [
-        lib.lang.config.simple "${cwd}",
-        lib.lang.c.app_build "hello_world",
-        lib.lang.c.config {
-            cflags = [ "-O3" ];
-        },
-        my_app,
-    ],
-
-     # Build for debug with no optimization and debug symbols
-
-    lib.build [
-        lib.lang.config.simple "${cwd}",
-        lib.lang.c.app_build "hello_debug",
-        lib.lang.c.config {
-            cflags = [
-                "-O0",
-                "-g"
-            ];
-        },
-        my_app,
-    ],
-]
-```
-
-Shows how it can easily be extended to simply include vendored modules, do
-parallell builds with different build flags and targets.
-
-
-## Installation
-
-Currently available as a Rust crate.
-
-Run:
-```
-cargo install lead-build
-```
-
-Or check out the git repository at [https://github.com/lead-build/lead-build](https://github.com/lead-build/lead-build)
-
-Then checkout `https://github.com/lead-build/lead-lib.git` as a submodule to
-your project.
+- **[Language Reference](language-reference/language.md)** — Complete syntax and built-in functions
+- **[Lead Lib Internals](under-the-hood/index.md)** — Advanced patterns: multiple targets, configuration, and modularization
 
 ## Comparison with other build systems
 
@@ -153,39 +119,3 @@ A bigger issue appears when writing for embedded systems and multiple targets:
 Any build system that relies on global state - for example, one that assumes a global list of source files - becomes problematic when the set of inputs is target-dependent.
 
 This is why declarative builds matter: each build is *pure* - it depends on its input parameters and *only* its input parameters, even if it at first glance looks a bit more complicated.
-
-## Lead build vs. lead lib
-
-[lead-build](https://lead-build.readthedocs.io) is a declarative language for
-describing build projects. It enables reusable modules that are architecture-
-and compiler-independent, so integrators can choose what to include without
-adopting a library's internal structure.
-
-This requires conventions and libraries for specifying builds, so each project
-implements the same interface and modules compose cleanly.
-
-This is where *lead-lib* comes in.
-
-At a high level, lead-lib provides:
-
-- Conventions for how modules integrate (the build API)
-- Tools for implementing boilerplate module builds
-
-It does so while remaining:
-- language independent
-- naturally supportive of code generation, such as parser generators and
-  protocol generators
-- capable of hierarchical linking, for example by combining reusable libraries
-  into one build output that can be used as input to the next
-- compatible with multiple architectures in the same build, for example with
-  non-global CFLAGS
-
-It also provides language and toolkit helpers.
-
-Implemented language packages:
-- `common` for shared target metadata helpers
-- `c` for gcc-based C compilation and linking
-
-Toolkit helpers:
-- `tk.flatten` for flattening list-of-lists values used in build graph
-  composition

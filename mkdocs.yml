@@ -8,6 +8,15 @@ theme:
 nav:
   - Home: index.md
 
+  - "Getting Started": getting-started.md
+
+  - "Cookbook":
+    - "Overview": cookbook/index.md
+    - "Simple C Application": cookbook/simple-c-app.md
+    - "Multiple Targets": cookbook/multiple-targets.md
+    - "Mixing C and Rust": cookbook/c-and-rust.md
+    - "Vendored Libraries": cookbook/vendored-libraries.md
+
   - "Lead Language":
     - "Intro": language/index.md
     - "1 - Basics": language/1-basics.md
@@ -17,7 +26,7 @@ nav:
     - "5 - Paths": language/5-paths.md
     - "6 - Build rules": language/6-build-rules.md
 
-  - "Lead Lib - under the hood":
+  - "Lead Lib - Advanced":
     - "About the pills": under-the-hood/index.md
     - "1 - Basic builds": under-the-hood/1-builds.md
     - "2 - Modules": under-the-hood/2-modules.md

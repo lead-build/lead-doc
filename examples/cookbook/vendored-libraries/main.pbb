@@ -1,0 +1,18 @@
+|{ cwd, include, ... }|
+let
+    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
+    mylib = include "${cwd}/vendor/mylib/library.pbb" lib;
+    
+    my_app = lib.merge [
+        lib.lang.c.mod {
+            src = [ "${cwd}/src/main.c" ];
+            inc = [ "${cwd}/src/" ];
+        },
+        mylib,
+    ];
+in
+lib.build [
+    lib.lang.config.simple "${cwd}",
+    lib.lang.c.app_build "my_app",
+    my_app,
+]
