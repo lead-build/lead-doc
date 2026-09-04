@@ -18,23 +18,23 @@ let
         inc = [ "${cwd}/src/" ];
     };
 in
-lib.tk.flatten [
+{
     # Release build
-    lib.build [
+    release = lib.build [
         lib.lang.config.simple "${cwd}",
         lib.lang.c.app_build "my_app_release",
         lib.lang.c.config { cflags = [ "-O3" ]; },
         my_app,
-    ],
+    ];
 
     # Debug build
-    lib.build [
+    debug = lib.build [
         lib.lang.config.simple "${cwd}",
         lib.lang.c.app_build "my_app_debug",
         lib.lang.c.config { cflags = [ "-O0", "-g" ]; },
         my_app,
-    ],
-]
+    ];
+}
 ```
 
 ## How It Works
@@ -59,33 +59,29 @@ ninja
 
 You'll get two executables: `my_app_release` (optimized) and `my_app_debug` (with debug symbols).
 
-## Variations
+## Aliases
 
-**Different source files per target:**
-
-```pbb
-my_release = lib.lang.c.mod {
-    src = [ "${cwd}/src/main.c", "${cwd}/src/release_utils.c" ];
-};
-
-my_debug = lib.lang.c.mod {
-    src = [ "${cwd}/src/main.c", "${cwd}/src/debug_utils.c" ];
-};
-```
-
-**Cross-compilation for multiple targets:**
+Letting the output be an object of builds means the output will be availalbe as
+alises in ninja. Building only `release` is done by calling `ninja release`
 
 ```pbb
-lib.tk.flatten [
-    lib.build [
-        lib.lang.c.config { cc = "arm-linux-gcc"; },
-        # ... rest of ARM build
-    ],
-    lib.build [
-        lib.lang.c.config { cc = "x86_64-linux-gcc"; },
-        # ... rest of x86 build
-    ],
-]
+{
+    # Release build
+    release = lib.build [
+        lib.lang.config.simple "${cwd}",
+        lib.lang.c.app_build "my_app_release",
+        lib.lang.c.config { cflags = [ "-O3" ]; },
+        my_app,
+    ];
+
+    # Debug build
+    debug = lib.build [
+        lib.lang.config.simple "${cwd}",
+        lib.lang.c.app_build "my_app_debug",
+        lib.lang.c.config { cflags = [ "-O0", "-g" ]; },
+        my_app,
+    ];
+}
 ```
 
 ## See Also

@@ -9,20 +9,20 @@ let
         inc = [ "${cwd}/src/" ];
     };
 in
-lib.tk.flatten [
+{
     # Release build
-    lib.build [
+    release = lib.build [
         lib.lang.config.simple "${cwd}",
         lib.lang.c.app_build "my_app_release",
         lib.lang.c.config { cflags = [ "-O3" ]; },
         my_app,
-    ],
+    ];
 
     # Debug build
-    lib.build [
+    debug = lib.build [
         lib.lang.config.simple "${cwd}",
         lib.lang.c.app_build "my_app_debug",
         lib.lang.c.config { cflags = [ "-O0", "-g" ]; },
         my_app,
-    ],
-]
+    ];
+}

@@ -22,21 +22,20 @@ let
         include "${cwd}/vendor/library.pbb" lib,
     ];
 in
-lib.tk.flatten [
-
+{
      # Build for release with optimization
-    lib.build [
+    release = lib.build [
         lib.lang.config.simple "${cwd}",
         lib.lang.c.app_build "hello_world",
         lib.lang.c.config {
             cflags = [ "-O3" ];
         },
         my_app,
-    ],
+    ];
 
      # Build for debug with no optimization and debug symbols
 
-    lib.build [
+    debug = lib.build [
         lib.lang.config.simple "${cwd}",
         lib.lang.c.app_build "hello_debug",
         lib.lang.c.config {
@@ -46,5 +45,5 @@ lib.tk.flatten [
             ];
         },
         my_app,
-    ],
-]
+    ];
+}

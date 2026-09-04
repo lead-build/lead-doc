@@ -37,6 +37,11 @@ A collection of conventions and helpers that turn the bare language into a pract
 
 So what does it look like?
 
+It's just a little bit more in the simplest case than other build enviornments.
+
+But don't be fooled, all makes sense, and it's because it is both extensible,
+configurable and modular.
+
 ```pbb
 |{ cwd, include, ... }|
 let
