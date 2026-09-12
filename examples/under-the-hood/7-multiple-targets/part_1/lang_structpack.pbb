@@ -1,4 +1,4 @@
-|{ cwd, pb, dbg, ... }|
+|{ cwd, pb, ... }|
 let
     structpack_cmd = |input output| ["python3", "${cwd}/structpack.py", "-i", input, "-o", output];
     toml_to_hdr = |ll file| pb.translate {

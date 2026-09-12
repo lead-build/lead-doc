@@ -22,34 +22,7 @@ At a first glance, we can simply split it into two modules.
 `main.pbb` can then be:
 
 ```pbb
-|{ cwd, include, ... }|
-let
-    lang_c = include "${cwd}/lib/lang_c.pbb";
-
-    app = {
-        srcs = [
-            "${cwd}/main.c",
-        ];
-        incs = [
-        ];
-    };
-
-    model = {
-        srcs = [
-            "${cwd}/model/model.c",
-            "${cwd}/model/some_other_model.c",
-        ];
-        incs = [
-            "${cwd}/model",
-        ];
-    };
-
-    all_modules = lang_c.merge [
-        app,
-        model,
-    ];
-in
-(lang_c.build "${cwd}/my_app" all_modules)
+--8<-- "examples/under-the-hood/2-modules/part_1/main.pbb"
 ```
 
 However, there is one new method used here: `lang_c.merge`. Let's implement it.
@@ -61,7 +34,6 @@ Note that this will be part of a library, not used by the end user. It is simply
 shown as an example of how it can be done.
 
 ```pbb
-
 # ---- >8 ----
     merge = | mods |
     {
@@ -69,7 +41,6 @@ shown as an example of how it can be done.
         incs = ( | prev mod | prev ++ mod.incs for []: mods );
     };
 # ---- >8 ----
-}
 ```
 
 Let's break it down into parts:
@@ -106,16 +77,7 @@ Let's try it out.
 Add a file `model/model.pbb`:
 
 ```pbb
-|{ cwd, ... }|
-{
-    srcs = [
-        "${cwd}/model.c",
-        "${cwd}/some_other_model.c",
-    ];
-    incs = [
-        "${cwd}",
-    ];
-}
+--8<-- "examples/under-the-hood/2-modules/part_2/model/model.pbb"
 ```
 
 Note that `cwd` in this case is an input from lead-build, referencing the
@@ -133,26 +95,7 @@ overall project to know what language the module is written in.
 But this means we need to include the file in the overall project's `main.pbb`:
 
 ```pbb
-|{ cwd, include, ... }|
-let
-    lang_c = include "${cwd}/lib/lang_c.pbb";
-
-    app = {
-        srcs = [
-            "${cwd}/main.c",
-        ];
-        incs = [
-        ];
-    };
-
-    model = include "${cwd}/model/model.pbb";
-
-    all_modules = lang_c.merge [
-        app,
-        model,
-    ];
-in
-(lang_c.build "${cwd}/my_app" all_modules)
+--8<-- "examples/under-the-hood/2-modules/part_2/main.pbb"
 ```
 
 ## Output

@@ -30,37 +30,7 @@ and expect them to be a single value at the end. When introducing `lead-lib`
 later, this will be more generic.
 
 ```pbb
-|{ cwd, include, ... }|
-let
-    lib = include "${cwd}/lib/lib.pbb";
-
-    target = {
-        config = {
-            objdir = ["${cwd}/build"];
-            srcdir = ["${cwd}"];
-            app = ["${cwd}/my_app"];
-        };
-    };
-
-    app = {
-        c = {
-            srcs = [
-                "${cwd}/main.c",
-                "${cwd}/model/model.c",
-                "${cwd}/model/some_other_model.c",
-            ];
-            incs = [
-                "${cwd}/model",
-            ];
-        };
-    };
-
-    all_modules = lib.merge [
-        target,
-        app,
-    ];
-in
-(lib.c.build all_modules)
+--8<-- "examples/under-the-hood/3-configuration/main.pbb"
 ```
 
 In this file, we can show that a module can also contain configuration and
@@ -88,104 +58,19 @@ previously is not a generic library; it is the C language library used by the
 build via `lib.c.build`.
 
 But first, define what's necessary for the `config` language by implementing
-`lang/lang_config.pbb`:
+`lib/lang_config.pbb`:
 
 ```pbb
-|{ pb, ... }|
-{
-    merge = | mods |
-    {
-        objdir = ( | prev mod | prev ++ mod.objdir for []: mods );
-        srcdir = ( | prev mod | prev ++ mod.srcdir for []: mods );
-        app = ( | prev mod | prev ++ mod.app for []: mods );
-    };
-}
+--8<-- "examples/under-the-hood/3-configuration/lib/lang_config.pbb"
 ```
 
 Note that the config language so far does not have a build function, since we
 only intend to build the C language.
 
-Speaking of `lang_c.pbb`, that also needs to be updated:
+Speaking of `lib/lang_c.pbb`, that also needs to be updated:
 
 ```pbb
-|{ pb, dbg, ... }|
-let
-     # Function using fold to get the last element from a list
-    list_last = | list | (| prev elem | elem for list);
-in
-{
-    build = | module |
-    let
-         # Calculate arguments for include paths
-        includes = [ | inc | "-I${inc}" for module.c.incs ];
-
-        objdir = list_last module.config.objdir; # Get the objdir from config
-
-         # Generate the object file path from a source file path. This uses the
-         # builtin function pb.translate
-        src_to_obj = | srcfile | pb.translate {
-            input = srcfile - ".c" + ".o"; # Change suffix from .c to .o
-            from = module.config.srcdir; # pb.translate takes a list of srcdirs
-            to = objdir;
-        };
-
-
-         # Define the compile command. This assumes the .o file is beside .c.
-         # This is a function that takes a source file and returns the built
-         # object file.
-        compile_c_to_o =
-        let
-             # Compile rule is only defined for the function below.
-            rule_compile = pb.rule (
-                |{ input, output }|
-                {
-                    command = [
-                        "gcc",
-                        "-c",
-                        "-o", output,
-                        "-MMD", "-MD", "${output}.d",
-                        input
-                    ]
-                    ++ includes;
-                    depfile = "${output}.d";
-                    description = "CC ${input}";
-                }
-            );
-        in
-         # Return a function that takes a source file and returns the build
-         # for the object file.
-        | srcfile | rule_compile {
-            input = srcfile;
-            output = src_to_obj srcfile;
-        };
-
-         # Define the link command.
-        link_o_to_app = pb.rule (
-            |{ input, output }|
-            {
-                command = [
-                    "gcc",
-                    "-o", output,
-                    input
-                ];
-                description = "LD ${output}";
-            }
-        );
-    in
-    link_o_to_app {
-        output = list_last module.config.app; # Get the app name from config
-        input = [
-            | srcfile | compile_c_to_o srcfile
-            for module.c.srcs
-        ];
-    };
-
-    merge = | mods |
-    {
-        srcs = ( | prev mod | prev ++ mod.srcs for []: mods );
-        incs = ( | prev mod | prev ++ mod.incs for []: mods );
-    };
-}
+--8<-- "examples/under-the-hood/3-configuration/lib/lang_c.pbb"
 ```
 
 In this file, we have made some changes.
@@ -201,28 +86,7 @@ files to the build directory based on what is available in the config.
 We still need to implement `lib/lib.pbb` though:
 
 ```pbb
-|{ include, cwd, ... }|
-let
-    lang_config = include "${cwd}/lang_config.pbb";
-    lang_c = include "${cwd}/lang_c.pbb";
-in
-{
-    merge = | mods |
-    {
-         # Merge config from all modules where config is defined.
-        config = lang_config.merge [
-            | mod | mod.config for mods if | mod | mod ? "config"
-        ];
-         # Merge c from all modules where c is defined.
-        c = lang_c.merge [
-            | mod | mod.c for mods if | mod | mod ? "c"
-        ];
-    };
-
-    # Re-export the languages
-    config = lang_config;
-    c = lang_c;
-}
+--8<-- "examples/under-the-hood/3-configuration/lib/lib.pbb"
 ```
 
 In this case, we re-export the `lang_c` and `lang_config.pbb` as `lib.c` and

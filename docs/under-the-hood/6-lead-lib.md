@@ -15,42 +15,7 @@ The build from pill 4 will then give the `main.pbb`, assuming lead-lib is loaded
 as a subdirectory `lead-lib`, preferably as a git submodule.
 
 ```pbb
-|{ cwd, include, ... }|
-let
-    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
-
-    target = | _ |
-    {
-        config = {
-            objbasedir = "${cwd}/build";
-            srcdirs = [ "${cwd}" ];
-            outdir = "${cwd}/out";
-        };
-    };
-
-     # lead-lib uses a wrapper to make the code cleaner. It's just a normal
-     # module as seen before.
-    my_app = lib.lang.c.mod {
-        src = [
-            "${cwd}/main.c",
-            "${cwd}/model/model.c",
-            "${cwd}/model/some_other_model.c",
-        ];
-        inc = [
-            "${cwd}/model",
-        ];
-    };
-
-    app_mods = [
-         # This generates the lib.common.out definition for the app.
-        lib.lang.c.app_build "my_app",
-
-        target,
-        my_app
-    ];
-in
- # lib.build from lead-lib takes a list of modules.
-lib.build app_mods
+--8<-- "examples/under-the-hood/6-lead-lib/part_1/main.pbb"
 ```
 
 As seen, all the building blocks are present from the previous pill.
@@ -83,81 +48,7 @@ For that, we need to create a language definition file, here called
 `lang_structpack.pbb`:
 
 ```pbb
-|{ cwd, pb, dbg, ... }|
-let
-    structpack_cmd = | input output | [
-        "python3",
-        "${cwd}/structpack.py",
-        "-i",
-        input,
-        "-o",
-        output
-    ];
-
-    toml_to_hdr = | ll file | pb.translate {
-        input = file;
-        from = ll.config.srcdirs;
-        to = ll.config.objdir;
-    };
-
-    tmpl_structpack = | ll |
-    let
-        rule_sp = pb.rule (
-            |{ input, output }|
-            {
-                command = structpack_cmd input output;
-                description = "SP structpack ${input}";
-            }
-        );
-    in
-    | file | rule_sp {
-        input = file;
-        output = (toml_to_hdr ll file) - ".toml" + ".h";
-    };
-in
-{
-    merge = {
-        inc = | a b | a ++ b;
-        src = | a b | a ++ b;
-
-        out_src = | a b | a ++ b;
-        out_hdr = | a b | a ++ b;
-    };
-
-    base = | l | let ll = l l;
-    in
-    {
-        c = {
-            extra_deps = ll.sp.out_hdr;
-            inc = [
-                | src_file | (toml_to_hdr ll src_file)
-                for (ll.sp.inc)
-            ];
-        };
-        sp = {
-            inc = [];
-            src = [];
-            out_src = [];
-            out_hdr = let
-                sp = tmpl_structpack ll;
-            in
-            [
-                | src_file | sp src_file
-                for (ll.sp.src)
-            ];
-        };
-    };
-
-    export = {
-        mod = |{inc ? [], src ? [], ...}|
-        | _ |{
-            sp = {
-                inc = inc;
-                src = src;
-            };
-        };
-    };
-}
+--8<-- "examples/under-the-hood/6-lead-lib/part_2/lang_structpack.pbb"
 ```
 
 Feel free to dig into the parts that might interest you. But in this pill, we are
@@ -177,58 +68,10 @@ The include path in structpack is necessary because structpack generates the
 header files within a build directory, so it tells structpack which translated
 paths to inject.
 
-The main file, with code generation, will then be:
+The `main.pbb` file, with code generation, will then be:
 
 ```pbb
-|{ cwd, include, ... }|
-let
-    lib = include "${cwd}/lead-lib/lead-lib.pbb" {
-        languages = {
-            sp = include "${cwd}/lang_structpack.pbb";
-        };
-    };
-
-    target = | _ |
-    {
-        config = {
-            objbasedir = "${cwd}/build";
-            srcdirs = [ "${cwd}" ];
-            outdir = "${cwd}/out";
-        };
-    };
-
-     # lead-lib uses a wrapper to make the code cleaner. It's just a normal
-     # module as seen before.
-    my_app = lib.lang.c.mod {
-        src = [
-            "${cwd}/main.c",
-            "${cwd}/model/model.c",
-            "${cwd}/model/some_other_model.c",
-        ];
-        inc = [
-            "${cwd}/model",
-        ];
-    };
-    my_sp_mod = lib.lang.sp.mod {
-        inc = [
-            "${cwd}/model",
-        ];
-        src = [
-            "${cwd}/model/some_struct.toml",
-        ];
-    };
-
-    app_mods = [
-         # This generates the lib.common.out definition for the app.
-        lib.lang.c.app_build "my_app",
-
-        target,
-        my_app,
-        my_sp_mod,
-    ];
-in
- # lib.build from lead-lib takes a list of modules.
-lib.build app_mods
+--8<-- "examples/under-the-hood/6-lead-lib/part_2/main.pbb"
 ```
 
 The only two additions are the added `language` to the lead-lib include and the

@@ -17,15 +17,7 @@ At the core, we are going to look at a simple module of one level:
 Create a file `part_1.pbb`:
 
 ```pbb
-|{ cwd, ... }|
-let
-    mod = {
-        app = "my_app";
-        arch = "x86_64";
-        outdir = "${cwd}/out";
-    };
-in
-mod.outdir / (mod.app + "-" + mod.arch)
+--8<-- "examples/under-the-hood/4-dependent-vars/part_1.pbb"
 ```
 
 This shows a generated path from the three parameters in the simplified module.
@@ -66,17 +58,7 @@ So let's try again, but make the module a *function*.
 Create a `part_2.pbb` containing:
 
 ```pbb
-|{ cwd, ... }|
-let
-    mod = | l |{
-        app = "my_app";
-        arch = "x86_64";
-        outdir = "${cwd}/out";
-    };
-
-    res = mod { };
-in
-res.outdir / (res.app + "-" + res.arch)
+--8<-- "examples/under-the-hood/4-dependent-vars/part_2.pbb"
 ```
 
 Since nothing within the module depends on `l`, we can simply pass an empty
@@ -95,18 +77,7 @@ we then run the module twice, passing the first iteration back to itself?
 Let's try `part_3.pbb`:
 
 ```pbb
-|{ cwd, ... }|
-let
-    mod = |self| {
-        app = "my_app";
-        arch = "x86_64";
-        outdir = "${cwd}/out";
-        outfile = self.outdir / (self.app + "-" + self.arch);
-    };
-    iter1 = mod { };
-    iter2 = mod iter1;
-in
-iter2.outfile
+--8<-- "examples/under-the-hood/4-dependent-vars/part_3.pbb"
 ```
 
 This gives yet again:
@@ -123,10 +94,8 @@ It is nevertheless valid to have `outfile` set dependent on those variables in
 `l`, since `outfile` is not *evaluated* as long as `l.outfile` is not referenced
 at that iteration.
 
-To achieve more levels of referencing, it is easy to iterate more times.
-However, this implementation only allows a finite level of iteration.
-
-Therefore, let's try another approach: what if we can make it recursive?
+In this approach we have shown one level of recursion, which is enough to
+resolve one reference. What if we need more levels of referencing?
 
 ## Recursion
 
@@ -165,18 +134,7 @@ recurse = |mod| (|prev _| mod prev for null:[1,2,3,4,5]);
 Lets add it to the code above as `part_4.pbb`:
 
 ```pbb
-|{ cwd, ... }|
-let
-    mod = |self| {
-        app = "my_app";
-        arch = "x86_64";
-        outdir = "${cwd}/out";
-        outfile = self.outdir / (self.app + "-" + self.arch);
-    };
-    recurse = |mod| (|prev _| mod prev for null : [1, 2, 3, 4, 5]);
-    out = recurse mod;
-in
-out.outfile
+--8<-- "examples/under-the-hood/4-dependent-vars/part_4.pbb"
 ```
 
 To allow infinite recursion, the list needs to be an infinite list. However,
@@ -184,19 +142,9 @@ to also fully leverage the laziness property of the language, this recurse
 function, with infinite iterations, is implemented as a builtin to the language,
 called `ops.recurse`.
 
-lets try it out, as `part_4.pbb`:
+lets try it out, as `part_5.pbb`:
 ```pbb
-|{ cwd, ops, ... }|
-let
-    mod = |self| {
-        app = "my_app";
-        arch = "x86_64";
-        outdir = "${cwd}/out";
-        outfile = self.outdir / (self.app + "-" + self.arch);
-    };
-    out = ops.recurse mod;
-in
-out.outfile
+--8<-- "examples/under-the-hood/4-dependent-vars/part_5.pbb"
 ```
 
 This concept of recursive resolution is used as the basis of the `lead-lib`
@@ -206,17 +154,7 @@ other, as will be described in later pills.
 More levels of iteration can be seen here, in `part_6.pbb`:
 
 ```pbb
-|{ cwd, ops, ... }|
-let
-    mod = |self| {
-        var_a = "a";
-        var_b = self.var_a + "b";
-        var_c = self.var_b + "c";
-        var_d = self.var_c + "d";
-    };
-    out = ops.recurse mod;
-in
-out.var_d
+--8<-- "examples/under-the-hood/4-dependent-vars/part_6.pbb"
 ```
 
 This resolves to:
@@ -237,15 +175,7 @@ up in an infinite recursion loop that is quite hard to debug.
 One example is `part_7`:
 
 ```pbb
-|{ cwd, ops, ... }|
-let
-    mod = |self| {
-        var_a = self.var_b + "a";
-        var_b = self.var_a + "b";
-    };
-    out = ops.recurse mod;
-in
-out.var_b
+--8<-- "examples/under-the-hood/4-dependent-vars/part_7.pbb"
 ```
 
 This shows that `self.var_b` depends on `self.var_a`, which depends back on

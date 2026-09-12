@@ -14,4 +14,5 @@ PyYAML==6.0.3
 pyyaml_env_tag==1.1
 six==1.17.0
 watchdog==6.0.0
+pymdown-extensions==11.0.2
 -e libs/pbb-lexer

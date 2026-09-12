@@ -35,81 +35,13 @@ added, such as which compilers to use, compiler flags, and defines, and so on.
 The library can be a separate file called `lib/lang_c.pbb`:
 
 ```pbb
-|{ pb, ... }|
-{
-    build = | output_file module |
-    let
-         # Calculate arguments for include paths
-        includes = [ | inc | "-I${inc}" for module.incs ];
-
-         # Define the compile command. This assumes the .o file is beside .c.
-         # This is a function that takes a source file and returns the built
-         # object file.
-        compile_c_to_o =
-        let
-             # Compile rule is only defined for the function below.
-            rule_compile = pb.rule (
-                |{ input, output }|
-                {
-                    command = [
-                        "gcc",
-                        "-c",
-                        "-o", output,
-                        "-MMD", "-MD", "${output}.d",
-                        input ] ++ includes;
-                    depfile = "${output}.d";
-                    description = "CC ${input}";
-                }
-            );
-        in
-         # Return a function that takes a source file and returns the build
-         # for the object file.
-        | srcfile | rule_compile {
-            input = srcfile;
-            output = srcfile - ".c" + ".o";
-        };
-
-         # Define the link command.
-        link_o_to_app = pb.rule (
-            |{ input, output }|
-            {
-                command = [
-                    "gcc",
-                    "-o", output,
-                    input
-                ];
-                description = "LD ${output}";
-            }
-        );
-    in
-    link_o_to_app {
-        output = output_file;
-        input = [
-            | srcfile | compile_c_to_o srcfile
-            for module.srcs
-        ];
-    };
-}
+--8<-- "examples/under-the-hood/1-builds/lib/lang_c.pbb"
 ```
 
 Let's see how to use it. Create a main file for the project, `main.pbb`:
 
 ```pbb
-|{ cwd, include, ... }|
-let
-    lang_c = include "${cwd}/lib/lang_c.pbb";
-
-    app = {
-        srcs = [
-            "${cwd}/main.c",
-            "${cwd}/lib/lib.c",
-        ];
-        incs = [
-            "${cwd}/lib",
-        ];
-    };
-in
-(lang_c.build "${cwd}/my_app" app)
+--8<-- "examples/under-the-hood/1-builds/main.pbb"
 ```
 
 ## Output

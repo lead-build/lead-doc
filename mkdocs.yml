@@ -10,6 +10,8 @@ markdown_extensions:
   - fenced_code
   - codehilite:
       guess_lang: false
+  - pymdownx.snippets:
+      base_path: .
 
 extra_css:
   - stylesheets/pygments.css
