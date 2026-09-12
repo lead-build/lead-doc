@@ -61,6 +61,27 @@ b = {
 };
 ```
 
+### `ops.recurse`
+
+Call a function with its output as argument.
+
+Is roughly equivalent to:
+
+```pbb
+recurse = |f| (|prev _| fs prev for null : [1,2,3,4,5...infinite]);
+```
+
+so that following two lines are functionally identical
+```pbb
+out = ops.recurse func
+out = func (func (func (func ...infinitely...)))
+```
+
+It is using fact that in the above `out == func out`, which can be leveraged to
+optimize by using lazy evaluation, so same parameter of out (given out is an
+object) don't need to be reevaluated for differnet levels of recursion.
+
+
 ## Builtin path functions
 
 ### `pb.translate`
