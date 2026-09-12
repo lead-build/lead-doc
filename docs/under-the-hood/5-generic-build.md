@@ -36,15 +36,15 @@ This means that to tell `lib.build` to output the application build from C, it i
 sufficient to add a module containing:
 
 ```pbb
-app_build = | l | let ll = l l; in {
+app_build = | self | {
     config = {
-        out = ll.c.app;
+        out = self.c.app;
     };
 };
 ```
 
 Adding this module to the build will result in `lib.build` referencing
-`ll.config.out`, which then references `ll.c.app`.
+`self.config.out`, which then references `self.c.app`.
 
 ## Adapting the build to dependent variables
 
@@ -58,47 +58,28 @@ the user sees:
 |{ cwd, include, ... }|
 let
     lib = include "${cwd}/lib/lib.pbb";
-
-    target = | l |
-    let
-        ll = l l;
-    in
-    {
+    target = |self| {
         config = {
-            objdir = [ "${cwd}/build" ];
-            srcdir = [ "${cwd}" ];
-            app = [ "${cwd}/my_app" ];
-            out = ll.c.app; # Make this a C build.
+            objdir = ["${cwd}/build"];
+            srcdir = ["${cwd}"];
+            app = ["${cwd}/my_app"];
+            out = self.c.app;
+            # Make this i C build.
         };
     };
-
-    myapp = | _ |
-    {
+    myapp = |_| {
         c = {
-            srcs = [
-                "${cwd}/main.c",
-                "${cwd}/model/model.c",
-                "${cwd}/model/some_other_model.c",
-            ];
-            incs = [
-                "${cwd}/model",
-            ];
-
-             # By limitations in this example, we need to define "app" here too,
-             # since all parameters within a language need to be defined here.
-             # This is properly handled in `lead-lib`.
+            srcs = ["${cwd}/main.c", "${cwd}/model/model.c", "${cwd}/model/some_other_model.c",];
+            incs = ["${cwd}/model",];
+            # By limitations in this example, we need to define "app" here too,
+            # since all parameters within a language needs to be defined here.
+            # This is properly handled in `lead-lib`
             app = [];
         };
     };
-
-    app_mods = lib.merge [
-        target,
-        myapp
-    ];
+    app_mods = lib.merge [target, myapp];
 in
-(
-    lib.build app_mods
-)
+(lib.build app_mods)
 ```
 
 The main parts that are added are simply the encapsulation of the objects as
@@ -107,54 +88,45 @@ functions. Most of them are wrapped in helpers anyway.
 Let's look at `lib/lib.pbb`:
 
 ```pbb
-|{ include, dbg, cwd, ... }|
+|{ include, cwd, ops, ... }|
 let
     lang_config = include "${cwd}/lang_config.pbb";
     lang_c = include "${cwd}/lang_c.pbb";
-
-     # merge is needed to generate the base module. It will also be exported below.
-    merge = | mods l |
+    # merge is needed to generate the base module. Will also be exported below.
+    merge = |mods l|
     let
-         # Just pass l down to all modules, which means during merge, it can
-         # simply be used as a normal object.
-        evaled_mods = [ | mod | (mod l) for mods ];
+        # Just pass l down to all modules, which means during merge, it can
+        # simply be used as a normal object
+        evaled_mods = [ |mod| (mod l) for mods ];
     in
     {
-         # Merge config from all modules where config is defined.
-        config = lang_config.merge [
-            | mod | mod.config for evaled_mods if | mod | mod ? "config"
-        ];
-         # Merge c from all modules where c is defined.
-        c = lang_c.merge [
-            | mod | mod.c for evaled_mods if | mod | mod ? "c"
-        ];
+        # Merge config from all modules where config is defined.
+        config = lang_config.merge [ |mod| mod.config for evaled_mods if |mod| mod ? "config" ];
+        # Merge c from all modules where c is defined.
+        c = lang_c.merge [ |mod| mod.c for evaled_mods if |mod| mod ? "c" ];
     };
-
-     # Combine all base modules from all languages.
-    base_mod = | l |
-    {
+    # Combine all base modules from all langauges
+    base_mod = |l| {
         config = lang_config.base l;
         c = lang_c.base l;
     };
 in
 {
-     # Export merge
-    merge = merge;
-
-     # Re-export the languages
+    # Export merge
+    merge;
+    # Re-export the langauges
     config = lang_config;
     c = lang_c;
-
-     # Build function
-    build = | mod |
+    # Build function
+    build = |mod|
     let
-         # Combine all modules into a single module, including the language base.
-        all_mods = merge [ base_mod, mod ];
-
-         # This is the recursion from pill 4.
-        res = all_mods all_mods;
+        # Combine all modules a single module, including the language base.
+        all_mods = merge [base_mod, mod];
+        # This is the recursion from pill 4
+        res = ops.recurse all_mods;
     in
-    res.config.out; # Use the configured output
+    res.config.out;
+    # Use the configured output
 }
 ```
 
@@ -162,7 +134,7 @@ Here are some larger changes.
 
 First, the merge function takes an extra argument. Due to how `lead-build`
 handles functions with multiple arguments, calling the function with only `mods`
-*binds* `mods` to the function and leaves a function taking `l`.
+*binds* `mods` to the function and leaves a function taking `self`.
 
 The only other change is that it performs the recursive evaluation of all mods
 to continue the merge as before.
@@ -175,132 +147,109 @@ be seen that it combines `base_mod` with `mod` to recurse before getting
 The `lib/lang_config.pbb` does not contain much that is surprising:
 
 ```pbb
-|{ pb, ... }|
-{
-     # The base module for config doesn't depend on any other module, so it can
-     # simply use a wildcard for the argument.
-    base = | _ |
-    {
+|{ pb, ... }| {
+    # The base module for config doesn't depend on any other module, so it can
+    # simply use a wildcard for the argument.
+    base = |_| {
         objdir = [];
         srcdir = [];
         app = [];
-
-         # Is defined from a module in `main.pbb` or similar.
+        # is defined from a module in `main.pbb` or similar.
         out = [];
     };
-
-    merge = | mods |
-    {
-        objdir = ( | prev mod | prev ++ mod.objdir for []: mods );
-        srcdir = ( | prev mod | prev ++ mod.srcdir for []: mods );
-        app = ( | prev mod | prev ++ mod.app for []: mods );
-        out = ( | prev mod | prev ++ mod.out for []: mods );
+    merge = |mods| {
+        objdir = (|prev mod| prev ++ mod.objdir for [] : mods);
+        srcdir = (|prev mod| prev ++ mod.srcdir for [] : mods);
+        app = (|prev mod| prev ++ mod.app for [] : mods);
+        out = (|prev mod| prev ++ mod.out for [] : mods);
     };
 }
 ```
 
 The base submodule contains the defaults, and `merge` has the new `out` field.
 
-The same is true for `lib/lang_c.pbb`:
+For `lib/lang_c.pbb`, it is mostly the same, only the `base`, with a new `app`
+field that exposes the build. `app` is also added to the merge:
 
 ```pbb
-|{ pb, dbg, ... }|
+|{ pb, ... }|
 let
-     # Function using fold to get the last element from a list
-    list_last = | list | (| prev elem | elem for list);
+    # Function using fold to get the last element from a list
+    list_last = |list| (|prev elem| elem for list);
 
-     # We still need to build the module, but this time, it is not exported as a
-     # build. This will be used to generate the `app` field in the base module.
-     # To build, this needs to be referenced from `mod.config.out`.
-    build = | module |
+    # The build function is untouched, since the module is fully resolved when
+    # used below
+    build = |module|
     let
-         # Calculate arguments for include paths
-        includes = [ | inc | "-I${inc}" for module.c.incs ];
-
-        objdir = list_last module.config.objdir; # Get the objdir from config
-
-         # Generate the object file path from a source file path. This uses the
-         # builtin function pb.translate.
-        src_to_obj = | srcfile | pb.translate {
-            input = srcfile - ".c" + ".o"; # Change suffix from .c to .o
-            from = module.config.srcdir; # pb.translate takes a list of srcdirs
+        # Caluclate arguments for include paths
+        includes = [ |inc| "-I${inc}" for module.c.incs ];
+        objdir = list_last module.config.objdir;
+        # Get the objdir from config
+        # Generate the object file path from source file path. This uses the
+        # builtin function pb.translate
+        src_to_obj = |srcfile| pb.translate {
+            input = srcfile - ".c" + ".o";
+            # Change suffix from .c to .o
+            from = module.config.srcdir;
+            # pb.translate takes a list of srcdirs
             to = objdir;
         };
-
-
-         # Define the compile command. This assumes the .o file is beside .c.
-         # This is a function that takes a source file and returns the built
-         # object file.
+        # Define the compile command, this assumes the .o file is beside .c
+        # This is a function that takes a source file and returns the built
+        # object file.
         compile_c_to_o =
         let
-             # Compile rule is only defined for the function below.
-            rule_compile = pb.rule (
-                |{ input, output }|
-                {
-                    command = [
-                        "gcc",
-                        "-c",
-                        "-o", output,
-                        "-MMD", "-MD", "${output}.d",
-                        input
-                    ]
-                    ++ includes;
-                    depfile = "${output}.d";
-                    description = "CC ${input}";
-                }
-            );
+            # Compile rule is only defined for the function below
+            rule_compile = pb.rule (|{ input, output }| {
+                command = [
+                    "gcc",
+                    "-c",
+                    "-o",
+                    output,
+                    "-MMD",
+                    "-MD",
+                    "${output}.d",
+                    input
+                ] ++ includes;
+                depfile = "${output}.d";
+                description = "CC ${input}";
+            });
         in
-         # Return a function that takes a source file and returns the build
-         # for the object file.
-        | srcfile | rule_compile {
+        # Return a function that takes a source file, and returns the build
+        # for the object file.
+        |srcfile| rule_compile {
             input = srcfile;
             output = src_to_obj srcfile;
         };
-
-         # Define the link command.
-        link_o_to_app = pb.rule (
-            |{ input, output }|
-            {
-                command = [
-                    "gcc",
-                    "-o", output,
-                    input
-                ];
-                description = "LD ${output}";
-            }
-        );
+        # Define the link command
+        link_o_to_app = pb.rule (|{ input, output }| {
+            command = ["gcc", "-o", output, input];
+            description = "LD ${output}";
+        });
     in
     link_o_to_app {
-        output = list_last module.config.app; # Get the app name from config
-        input = [
-            | srcfile | compile_c_to_o srcfile
-            for module.c.srcs
-        ];
+        output = list_last module.config.app;
+        # Get the app name from config
+        input = [ |srcfile| compile_c_to_o srcfile for module.c.srcs ];
     };
 in
 {
-    base = | l |
-    let
-        ll = l l;
-    in
-    {
-         # No default sources or includes. They still need to be defined.
+    base = |self| {
+        # No default sources or includes. Still needs to be defined
         srcs = [];
         incs = [];
-
-         # App is a list of all outputs, given this module should be built.
-         # This is referenced from a module in `main.pbb` if a C build is
-         # expected.
+        # App is a list of all outputs, given this module should be built.
+        # This is referenced from a module in `main.pbb` if a C build is
+        # exptected.
         app = [
-            build ll # Invoke the previous build function.
+            # Invoke the previous build function.
+            build self
         ];
     };
-
-    merge = | mods |
-    {
-        srcs = ( | prev mod | prev ++ mod.srcs for []: mods );
-        incs = ( | prev mod | prev ++ mod.incs for []: mods );
-        app = ( | prev mod | prev ++ mod.app for []: mods );
+    merge = |mods| {
+        srcs = (|prev mod| prev ++ mod.srcs for [] : mods);
+        incs = (|prev mod| prev ++ mod.incs for [] : mods);
+        app = (|prev mod| prev ++ mod.app for [] : mods);
     };
 }
 ```

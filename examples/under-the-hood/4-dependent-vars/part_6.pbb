@@ -1,14 +1,11 @@
-|{ cwd, ... }|
+|{ cwd, ops, ... }|
 let
-    mod = | l |
-    let
-        ll = l l;
-    in
-    {
-        var_a = ll.var_b + "a";
-        var_b = ll.var_a + "b";
+    mod = |self| {
+        var_a = "a";
+        var_b = self.var_a + "b";
+        var_c = self.var_b + "c";
+        var_d = self.var_c + "d";
     };
-
-    res = mod mod;
+    out = ops.recurse mod;
 in
-res.var_b
+out.var_d

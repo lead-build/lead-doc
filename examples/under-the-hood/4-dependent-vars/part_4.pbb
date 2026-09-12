@@ -1,16 +1,12 @@
 |{ cwd, ... }|
 let
-    mod = | l |
-    let
-        ll = l l;
-    in
-    {
+    mod = |self| {
         app = "my_app";
         arch = "x86_64";
         outdir = "${cwd}/out";
-        outfile = ll.outdir / (ll.app + "-" + ll.arch);
+        outfile = self.outdir / (self.app + "-" + self.arch);
     };
-
-    res = mod mod;
+    recurse = |mod| (|prev _| mod prev for null : [1, 2, 3, 4, 5]);
+    out = recurse mod;
 in
-res.outfile
+out.outfile

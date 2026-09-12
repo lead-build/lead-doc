@@ -1,10 +1,4 @@
-|{ cwd, ... }|
-{
-    srcs = [
-        "${cwd}/model.c",
-        "${cwd}/some_other_model.c",
-    ];
-    incs = [
-        "${cwd}",
-    ];
+|{ cwd, ... }| {
+    srcs = ["${cwd}/model.c", "${cwd}/some_other_model.c",];
+    incs = ["${cwd}",];
 }

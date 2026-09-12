@@ -97,13 +97,12 @@ Let's try `part_3.pbb`:
 ```pbb
 |{ cwd, ... }|
 let
-    mod = | l |{
+    mod = |self| {
         app = "my_app";
         arch = "x86_64";
         outdir = "${cwd}/out";
-        outfile = l.outdir / (l.app + "-" + l.arch);
+        outfile = self.outdir / (self.app + "-" + self.arch);
     };
-
     iter1 = mod { };
     iter2 = mod iter1;
 in
@@ -131,79 +130,93 @@ Therefore, let's try another approach: what if we can make it recursive?
 
 ## Recursion
 
-Instead of evaluating the iteration outside of the module, what if we move it
-into the module itself?
+Ulitimately, this would be done infinitely, but to start with, we set "infinite"
+to 5 iterations, and try to make it generic instead.
 
-Let's modify:
+To start with, look at the concept of a couple of iterations:
+
+```pbb
+mod = |self| ...;
+
+iter1 = null;
+iter2 = mod iter1;
+iter3 = mod iter2;
+iter4 = mod iter3;
+iter5 = mod iter4;
+out = mod iter5;
+```
+
+This maps to the operation of fold, so that:
+```pbb
+mod = | l | ...;
+
+out = (|prev _| mod prev for null:[1,2,3,4,5]);
+```
+
+The list `[1,2,3,4]` is there only to provide something to iterate over. The
+value is ignored, as the second argument to the iterator function, `_`, and the
+iteration starts at `null`. The values are semantically identical.
+
+The construct in the second line can be rewritten as a helper function:
+```pbb
+recurse = |mod| (|prev _| mod prev for null:[1,2,3,4,5]);
+```
+
+Lets add it to the code above as `part_4.pbb`:
 
 ```pbb
 |{ cwd, ... }|
 let
-    mod = | l |
-    let
-        ll = l l;
-    in
-    {
+    mod = |self| {
         app = "my_app";
         arch = "x86_64";
         outdir = "${cwd}/out";
-        outfile = ll.outdir / (ll.app + "-" + ll.arch);
+        outfile = self.outdir / (self.app + "-" + self.arch);
     };
-
-    res = mod mod;
+    recurse = |mod| (|prev _| mod prev for null : [1, 2, 3, 4, 5]);
+    out = recurse mod;
 in
-res.outfile
+out.outfile
 ```
 
-At the top level, for `(mod x).app`, `(mod x).arch`, and `(mod x).outdir`, the
-result is not dependent at all on what the argument `x` is; it won't even be
-evaluated. Not even the `let ll = l l; in` expression is evaluated, since
-neither `l` nor `ll` is referenced from those parameters. Therefore, `x` can be
-of any type defined in lead-build: an object, null, or a function. It doesn't
-matter.
+To allow infinite recursion, the list needs to be an infinite list. However,
+to also fully leverage the laziness property of the language, this recurse
+function, with infinite iterations, is implemented as a builtin to the language,
+called `ops.recurse`.
 
-So when passing the module itself to it, which is itself a function at this
-point, they will still evaluate.
-
-So calculating `res = mod mod;` means passing the module function back to the
-module, giving access to all top-level parameters.
-
-When evaluating `res.outfile`, however, the module function on line 3 gets the
-module itself as argument `l`. On line 5, it evaluates `ll = l l;`, which is the
-same as `res = mod mod;`, since `l` in this case is set to `mod` from the call
-`res = mod mod;`.
-
-That means `ll`, when evaluating `res.outfile`, is set to the evaluated `mod`
-that gives access to `ll.outdir`, `ll.app`, and `ll.arch`.
-
-In fact, if any of those depended on variables within the module itself,
-`ll = l l;` still evaluates one iteration more, and there is a recursive
-resolution of all variables, which theoretically allows an infinite number of
-iterations.
+lets try it out, as `part_4.pbb`:
+```pbb
+|{ cwd, ops, ... }|
+let
+    mod = |self| {
+        app = "my_app";
+        arch = "x86_64";
+        outdir = "${cwd}/out";
+        outfile = self.outdir / (self.app + "-" + self.arch);
+    };
+    out = ops.recurse mod;
+in
+out.outfile
+```
 
 This concept of recursive resolution is used as the basis of the `lead-lib`
 module system, to make it possible to allow multiple languages to depend on each
 other, as will be described in later pills.
 
-More levels of iteration can be seen here, in `part_5.pbb`:
+More levels of iteration can be seen here, in `part_6.pbb`:
 
 ```pbb
-|{ cwd, ... }|
+|{ cwd, ops, ... }|
 let
-    mod = | l |
-    let
-        ll = l l;
-    in
-    {
+    mod = |self| {
         var_a = "a";
-        var_b = ll.var_a + "b";
-        var_c = ll.var_b + "c";
-        var_d = ll.var_c + "d";
+        var_b = self.var_a + "b";
+        var_c = self.var_b + "c";
+        var_d = self.var_c + "d";
     };
-
-    res = mod mod;
+    out = ops.recurse mod;
 in
-res.var_d
+out.var_d
 ```
 
 This resolves to:
@@ -221,34 +234,30 @@ However, it only works if it eventually ends up in parameters that are not
 dependent on `l`. If not, there will be no termination, and the system will end
 up in an infinite recursion loop that is quite hard to debug.
 
-One example is `part_6`:
+One example is `part_7`:
 
 ```pbb
-|{ cwd, ... }|
+|{ cwd, ops, ... }|
 let
-    mod = | l |
-    let
-        ll = l l;
-    in
-    {
-        var_a = ll.var_b + "a";
-        var_b = ll.var_a + "b";
+    mod = |self| {
+        var_a = self.var_b + "a";
+        var_b = self.var_a + "b";
     };
-
-    res = mod mod;
+    out = ops.recurse mod;
 in
-res.var_b
+out.var_b
 ```
 
-This shows that `ll.var_b` depends on `ll.var_a`, which depends back on
-`ll.var_b`.
+This shows that `self.var_b` depends on `self.var_a`, which depends back on
+`self.var_b`.
 
 Running this example will result in:
 
 ```
-thread 'main' (18762) has overflowed its stack
+thread 'main' (391980) has overflowed its stack
 fatal runtime error: stack overflow, aborting
-[1]    18762 IOT instruction  pb -E -i part_6.pbb
+[1]    391980 IOT instruction  pb -E -i part_7.pbb
+
 ```
 
 To have any chance of debugging this, add `-vvv` to `pb`. It will print out a
@@ -256,56 +265,54 @@ trace of all expressions being resolved internally within `pb`. The format may
 vary between versions of `pb`, but it may provide a clue as to where the
 recursion happens.
 
-`pb -E -i part_6.pbb -vvv` will be quite noisy, but it will give some clues.
+`pb -E -i part_7.pbb -vvv` will be quite noisy, but it will give some clues.
 
 In this case, it will output something similar to:
 
 ```
-...    ...    binary operator expression at part_6.pbb:9:17
-... Resolving bound expression at part_6.pbb:9:17
-...    ...    attribute selection at part_6.pbb:9:17
-... Resolving bound expression at part_6.pbb:9:20
-... Resolving bound expression at part_6.pbb:9:17
-... Resolving bound expression at part_6.pbb:5:14
-...    ...    function call at part_6.pbb:5:14
-... Resolving bound expression at part_6.pbb:5:14
-... Resolving bound expression at part_6.pbb:5:16
-...    ...    bound expression at part_6.pbb:4:5
-...    ...    bound expression at part_6.pbb:7:5
-... Resolving bound expression at part_6.pbb:8:17
-...    ...    binary operator expression at part_6.pbb:8:17
-... Resolving bound expression at part_6.pbb:8:17
-...    ...    attribute selection at part_6.pbb:8:17
-... Resolving bound expression at part_6.pbb:8:20
-... Resolving bound expression at part_6.pbb:8:17
-... Resolving bound expression at part_6.pbb:5:14
-...    ...    function call at part_6.pbb:5:14
-... Resolving bound expression at part_6.pbb:5:14
-... Resolving bound expression at part_6.pbb:5:16
-...    ...    bound expression at part_6.pbb:4:5
-...    ...    bound expression at part_6.pbb:7:5
-... Resolving bound expression at part_6.pbb:9:17
+...    ...    binary operator expression at part_7.pbb:4:17
+... Resolving bound expression at part_7.pbb:4:17
+...    ...    attribute selection at part_7.pbb:4:17
+... Resolving bound expression at part_7.pbb:4:22
+... Resolving bound expression at part_7.pbb:4:17
+... Resolving bound expression at part_7.pbb:7:23
+...    ...    function call at part_7.pbb:7:23
+... Resolving bound expression at part_7.pbb:7:23
+...    ...    bound expression at part_7.pbb:7:23
+...    ...    bound expression at part_7.pbb:3:18
+... Resolving bound expression at part_7.pbb:5:17
+...    ...    binary operator expression at part_7.pbb:5:17
+... Resolving bound expression at part_7.pbb:5:17
+...    ...    attribute selection at part_7.pbb:5:17
+... Resolving bound expression at part_7.pbb:5:22
+... Resolving bound expression at part_7.pbb:5:17
+... Resolving bound expression at part_7.pbb:7:23
+...    ...    function call at part_7.pbb:7:23
+... Resolving bound expression at part_7.pbb:7:23
+...    ...    bound expression at part_7.pbb:7:23
+...    ...    bound expression at part_7.pbb:3:18
+... Resolving bound expression at part_7.pbb:4:17
 ```
 
-In this case, it can be seen that there are a lot of focus around `part_6.pbb:8`
-and `part_6.pbb:9`, which happens to be the lines:
+In this case, it can be seen that there are a lot of focus around `part_7.pbb:4`
+and `part_7.pbb:5`, which happens to be the lines:
 
 ```pbb
-        var_a = ll.var_b + "a";
-        var_b = ll.var_a + "b";
+        var_a = self.var_b + "a";
+        var_b = self.var_a + "b";
 ```
 which gives a clue of where the infinite recursion happens.
 
 ## Merge
 
-This however means we need to modify the merging slightly, by passing the `l`
+This however means we need to modify the merging slightly, by passing the `self`
 parameter forward.
 
 Given that we have a `merge_objs` function, that merges two resolved modules,
-the `l` parameter can be passed down simply by using:
+the `self` parameter can be passed down simply by using:
 
 ```pbb
-merge = | mods l | merge_objs [|mod| mod l for mods];
+merge = | mods self | merge_objs [|mod| mod self for mods];
 ```
 
 ## Conclusion

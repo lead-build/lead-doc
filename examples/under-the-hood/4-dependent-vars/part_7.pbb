@@ -1,0 +1,9 @@
+|{ cwd, ops, ... }|
+let
+    mod = |self| {
+        var_a = self.var_b + "a";
+        var_b = self.var_a + "b";
+    };
+    out = ops.recurse mod;
+in
+out.var_b

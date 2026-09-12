@@ -1,7 +1,6 @@
 |{ cwd, include, ... }|
 let
     lib = include "${cwd}/lib/lib.pbb";
-
     target = {
         config = {
             objdir = ["${cwd}/build"];
@@ -9,23 +8,12 @@ let
             app = ["${cwd}/my_app"];
         };
     };
-
     app = {
         c = {
-            srcs = [
-                "${cwd}/main.c",
-                "${cwd}/model/model.c",
-                "${cwd}/model/some_other_model.c",
-            ];
-            incs = [
-                "${cwd}/model",
-            ];
+            srcs = ["${cwd}/main.c", "${cwd}/model/model.c", "${cwd}/model/some_other_model.c",];
+            incs = ["${cwd}/model",];
         };
     };
-
-    all_modules = lib.merge [
-        target,
-        app,
-    ];
+    all_modules = lib.merge [target, app,];
 in
 (lib.c.build all_modules)
