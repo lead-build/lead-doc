@@ -47,12 +47,21 @@ Objects are the primary data structure in the language. They group named fields 
 field_name = expression;
 ```
 
+If a field's value is just a variable with the same name as the field, the `= expression` part can be omitted:
+
+```pbb
+field_name;
+```
+
+This is shorthand for `field_name = field_name;`, inheriting the variable of that name from the enclosing scope as the field's value. This shorthand only applies to identifier field names, not quoted string keys.
+
 The field name can be either an identifier or a quoted string. This is useful when a key contains characters that are not valid in identifiers.
 
 ```pbb
 {
     "compiler-flags" = ["-O2", "-Wall"];
     normal_name = 1;
+    shorthand_name;
 }
 ```
 

@@ -50,6 +50,11 @@ They are used for structured data, function arguments, and configuration.
 Object keys may be written either as identifiers (`name`) or as quoted strings
 (`"compiler-flags"`).
 
+A field written as a bare identifier, without `= value;`, is shorthand for
+`identifier = identifier;`: the value is taken from a variable of that name in
+the enclosing scope. This shorthand is only available for identifier keys, not
+quoted string keys.
+
 Objects support `==`/`!=`: two objects are equal when they have the same set of
 keys and each corresponding value is equal.
 
