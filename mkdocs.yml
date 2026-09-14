@@ -21,6 +21,11 @@ nav:
 
   - "Getting Started": getting-started.md
 
+  - "Tooling":
+    - "Overview": tooling/index.md
+    - "Command Line Interface": tooling/cli.md
+    - "VS Code Extension": tooling/vscode.md
+
   - "Cookbook":
     - "Overview": cookbook/index.md
     - "Simple C Application": cookbook/simple-c-app.md
