@@ -8,38 +8,12 @@ Organize your project by splitting code into reusable library modules.
 
 **main.pbb:**
 ```pbb
-|{ cwd, include, ... }|
-let
-    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
-    mathlib = include "${cwd}/lib/mathlib/mathlib.pbb" lib;
-    
-    my_app = lib.merge [
-        lib.lang.c.mod {
-            src = [ "${cwd}/src/main.c" ];
-            inc = [ "${cwd}/src/" ];
-        },
-        mathlib,
-    ];
-in
-lib.build [
-    lib.lang.config.simple "${cwd}",
-    lib.lang.c.app_build "my_app",
-    my_app,
-]
+--8<-- "examples/cookbook/splitting-into-libraries/main.pbb"
 ```
 
 **lib/mathlib/mathlib.pbb:**
 ```pbb
-|{ cwd, ... }|
-| lib |
-lib.lang.c.mod {
-    src = [
-        "${cwd}/src/mathlib.c",
-    ];
-    inc = [
-        "${cwd}/src/",
-    ];
-}
+--8<-- "examples/cookbook/splitting-into-libraries/lib/mathlib/mathlib.pbb"
 ```
 
 ## How It Works
@@ -57,8 +31,8 @@ Each library module must expose a build module that can be merged into your appl
 ├── main.pbb                    # Main application build
 ├── src/
 │   └── main.c                  # Application code
+├── lead-lib/                   # Lead Lib submodule
 ├── lib/
-│   ├── lead-lib/               # Lead Lib submodule
 │   └── mathlib/
 │       ├── mathlib.pbb         # Library module config
 │       └── src/
@@ -73,36 +47,33 @@ To split your code into libraries, create a `.pbb` file named after your library
 
 **lib/mathlib/mathlib.pbb:**
 ```pbb
-|{ cwd, ... }|
-| lib |
-lib.lang.c.mod {
-    src = [
-        "${cwd}/src/mathlib.c",
-    ];
-    inc = [
-        "${cwd}/src/",
-    ];
-}
+--8<-- "examples/cookbook/splitting-into-libraries/lib/mathlib/mathlib.pbb"
 ```
 
-Then include it in your main build:
+The file has two headers. The first, `|{ cwd, ... }|`, is the file header that every `.pbb` file has, where `cwd` is the directory of the library itself. This is what lets the library refer to its own source files without knowing where in the project it is placed. The second, `| lib |`, is an ordinary function argument, which receives what is passed after the file name in `include`. Here, that is the `lib` object.
 
+Then include it in your main build, and add it to the list of modules passed to `lib.merge`:
+
+**main.pbb:**
 ```pbb
-|{ cwd, include, ... }|
-let
-    lib = include "${cwd}/lib/lead-lib/lead-lib.pbb" { };
-    mathlib = include "${cwd}/lib/mathlib/mathlib.pbb" lib;
-    
-    my_app = lib.merge [
-        lib.lang.c.mod { src = [ "${cwd}/src/main.c" ]; },
-        mathlib,
-    ];
-in
-lib.build [
-    lib.lang.config.simple "${cwd}",
-    lib.lang.c.app_build "my_app",
-    my_app,
-]
+--8<-- "examples/cookbook/splitting-into-libraries/main.pbb"
+```
+
+The library and the application are ordinary C sources:
+
+**lib/mathlib/src/mathlib.h:**
+```c
+--8<-- "examples/cookbook/splitting-into-libraries/lib/mathlib/src/mathlib.h"
+```
+
+**lib/mathlib/src/mathlib.c:**
+```c
+--8<-- "examples/cookbook/splitting-into-libraries/lib/mathlib/src/mathlib.c"
+```
+
+**src/main.c:**
+```c
+--8<-- "examples/cookbook/splitting-into-libraries/src/main.c"
 ```
 
 ## Running the Build
@@ -119,7 +90,7 @@ You can split your code into multiple library modules:
 ```pbb
 |{ cwd, include, ... }|
 let
-    lib = include "${cwd}/lib/lead-lib/lead-lib.pbb" { };
+    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
     mathlib = include "${cwd}/lib/mathlib/mathlib.pbb" lib;
     utillib = include "${cwd}/lib/utillib/utillib.pbb" lib;
     

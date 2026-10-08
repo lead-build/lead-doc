@@ -1,6 +1,6 @@
 # VS Code Extension
 
-The **lead-build** extension for Visual Studio Code provides language support for Lead build configuration files.
+The **lead-build** extension for Visual Studio Code provides language support for Lead build configuration files. It uses the language server `pbls`, which is installed together with `pb`; see [Getting Started](../getting-started.md).
 
 ## Features
 
@@ -20,5 +20,5 @@ The extension is available on the [VS Code Marketplace](https://marketplace.visu
 Search for "lead-build" in the VS Code Extensions marketplace or install it directly from the command line:
 
 ```
-code --install-extension lead-build
+code --install-extension pengi.lead-build
 ```

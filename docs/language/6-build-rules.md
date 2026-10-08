@@ -1,4 +1,4 @@
-# 6 - Build rules
+# Build rules
 
 Rules and builds are special value types in Lead, and the ultimate goal of what
 is generated. They are not ordinary literals; they are created from `pb.rule`
@@ -15,38 +15,40 @@ Common fields returned by that object:
 - `description` - short, human-readable text shown in build output.
 - Optional fields such as `depfile`, `rspfile`, `pool`, etc., which control additional Ninja features.
 
-The variables named in the rule function become placeholders used when emitting the Ninja rule; pb maps those placeholders to Ninja variables (e.g. `$in` / `$out`) as part of the translation. pb also generates a stable, unique rule name derived from the rule's template.
+The variables named in the rule function become placeholders used when emitting the Ninja rule; `pb` maps those placeholders to Ninja variables (e.g. `$in` / `$out`) as part of the translation. `pb` also generates a stable, unique rule name derived from the rule's template.
 
 When the rule is emitted to Ninja, the Lead variables `input` and `output` are mapped to the Ninja placeholders `$in` and `$out`; this is necessary because `in` is a reserved keyword in Lead.
 
 A simple example, which compiles a file to an object file with dependency tracking:
 
 ```pbb
-rule_compile = pb.rule |{input, output, ...}|
-    {
-        command = ["gcc", "-c", "-o", output, "-MMD", "-MF", "${output}.d", input];
-        depfile = "${output}.d";
-    };
+rule_compile = pb.rule (|{input, output, ...}| {
+    command = ["gcc", "-c", "-o", output, "-MMD", "-MF", "${output}.d", input];
+    depfile = "${output}.d";
+});
 ```
 
-will generate a rule:
+Note the parentheses around the function. A function definition extends as far as possible, so it has to be enclosed to be passed as an argument.
+
+This will generate a rule:
+
 ```ninja
 rule gcc_c_o_MMD
   command = gcc -c -o ${out} -MMD -MF ${out}.d ${in}
   depfile = ${out}.d
 ```
 
-where the name of the rule is generated from the command, and is guaranteed to be unique
+where the name of the rule is generated from the command, and is guaranteed to be unique.
 
 ## Builds
 
-A build is an instance of a rule applied to concrete inputs and outputs. In Lead, a build is constructed by calling a rule returned from `pb.rule` with the relevant inputs, outputs, and parameters, which will generate a `build` statement in the output `ninja.build`.
+A build is an instance of a rule applied to concrete inputs and outputs. In Lead, a build is constructed by calling a rule returned from `pb.rule` with the relevant inputs, outputs, and parameters, which will generate a `build` statement in the output `build.ninja`.
 
 When constructing a build, set the following fields in the rule call argument object:
 
 - `input` - the file or files needed by the build
 - `output` - the file or files produced by the build
-- `deps` - implicit depednecnies for the build. Handled as ninja build `| deps`. Optional.
+- `deps` - implicit dependencies for the build. Handled as ninja build `| deps`. Optional.
 - Custom variables, as used in the corresponding `pb.rule`.
 
 Minimal example:
@@ -75,7 +77,11 @@ rule gcc_o_MMD_MF
   depfile = ${out}.d
 
 build build/main.o: gcc_o_MMD_MF src/main.c
+
+default build/main.o
 ```
+
+The value the file evaluates to, here `my_build`, is what becomes the `default` target.
 
 ## Dependency chains
 
@@ -108,7 +114,8 @@ in
   app
 ```
 
-generating a build.ninja file as:
+generating a `build.ninja` file as:
+
 ```ninja
 rule gcc_o
   command = gcc -o ${out} ${in}
@@ -120,6 +127,8 @@ rule gcc_c_o_MMD
 build build/main.o: gcc_c_o_MMD src/main.c
 
 build build/app: gcc_o build/main.o
+
+default build/app
 ```
 
 In this pattern, the first build becomes an input to the second build, forming a simple build dependency chain.

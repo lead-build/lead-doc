@@ -4,11 +4,11 @@ Before diving into the language in depth, we need to establish the fundamental b
 
 In the previous chapter, you could read how to evaluate the code, which is helpful in the chapters below.
 
-You might have noticed the leading line, `|{ ... }|`. For now, you can safely ignore it and just keep it as the first line in your `.pbb` file throughout the first chapters. We'll return to its purpose later, once we have introduced builtins and the file header more fully. What matters here is the structure that follows. It is part of the file header and can be updated later.
+You might have noticed the leading line, `|{ ... }|`. For now, you can safely ignore it and just keep it as the first line in your `.pbb` file throughout the first chapters. It is the file header, and we'll return to its purpose later, once we have introduced functions and builtins. What matters here is the structure that follows.
 
 ## Basic types
 
-There are a few basic types that can be written in lead-build:
+There are a few basic types that can be written in Lead:
 
 - Strings - represented by a string surrounded by quotes, for example `"hello"`, where letters can be escaped. Strings may also contain substitutions. More on those later.
 - Integers - a simple number containing digits `0`-`9` and an optional prefixed minus sign.
@@ -24,7 +24,7 @@ Those include:
 
 ## Comments
 
-Lead-build supports line comments that start with `#` and continue to the end of the line.
+Lead supports line comments that start with `#` and continue to the end of the line.
 
 ```pbb
 # This is a full-line comment
@@ -114,7 +114,7 @@ Tuples are lightweight, fixed-size groupings of values. They are written using p
 Unlike lists, tuples are not intended for iteration or dynamic manipulation. They are best used for:
 
 - Returning multiple values
-- Representing values that are grouped together.
+- Representing values that are grouped together
 - Compact data grouping
 
 Tuples are also used to represent keys and values when iterating over objects. More on that later.

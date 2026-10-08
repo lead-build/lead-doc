@@ -11,7 +11,7 @@ source files.
 
 Given the previous build, we are going to skip ahead and use `lead-lib`.
 
-The build from pill 4 will then give the `main.pbb`, assuming lead-lib is loaded
+The build from pill 5 will then give the `main.pbb`, assuming lead-lib is loaded
 as a subdirectory `lead-lib`, preferably as a git submodule.
 
 ```pbb
@@ -74,7 +74,7 @@ The `main.pbb` file, with code generation, will then be:
 --8<-- "examples/under-the-hood/6-lead-lib/part_2/main.pbb"
 ```
 
-The only two additions are the added `language` to the lead-lib include and the
+The only two additions are the added `languages` to the lead-lib include and the
 structpack module `my_sp_mod`.
 
 The generated `build.ninja` can then correctly show all generated dependencies:
@@ -106,10 +106,10 @@ build build/my_app/model/some_struct.h: python_i_o model/some_struct.toml
 default out/my_app
 ```
 
-# Conclusion
+## Conclusion
 
 In this pill, we have shown how the previous pills integrate into lead-lib and
 how to use the flexibility for code generation.
 
 In the next pill, we will show how it can be used for multiple parallel targets
-and relocation libraries.
+from the same modules.

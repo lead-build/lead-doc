@@ -106,12 +106,12 @@ A pattern can be one of:
 - tuple pattern - written as a tuple `(a, b, c)`, where each field is itself a pattern, expecting a tuple of the correct size
 - list pattern - written as a list `[a, b, c]`, where each element is itself a pattern, expecting a list of the correct length. Ending it with `...`, as in `[a, b, ...]`, allows the list to be longer
 - object pattern - written as a pattern surrounded by braces `{...}`, containing a set of match statements separated by commas
-- null pattern - a single `_`, matching anything, but ignoring the value and not storing it
+- wildcard pattern - a single `_`, matching anything, but ignoring the value and not storing it
 
 An object pattern contains a set of match statements, which can either be:
 
 - a single name, matching the name in the object to a variable of the same name
-- a string `name = submatcher`, matching the field `name` in the input object using the `submatcher`. This means `{ field = varname; } = obj;`, unpacking `obj` to place the field `field` into the variable `varname`
+- a statement `name = submatcher`, matching the field `name` in the input object using the `submatcher`. This means `{ field = varname } = obj;` unpacks `obj`, placing the field `field` into the variable `varname`
 
 Optional default values can be added with `name ? default_expr` or `name = submatcher ? default_expr`. If the field is missing, the default expression is used.
 
@@ -260,13 +260,57 @@ in
 
 it is quite clear that the file actually contains a function taking an object as its argument and matching any extra unspecified fields.
 
-That is because the file itself contains a single pure statement. Any builtins are passed as arguments to the function. Builtins are functions or arguments built into the `pb` tool itself and exposed to the implementation.
+That is because the file itself contains a single pure expression. Any builtins are passed as arguments to the function. Builtins are functions or arguments built into the `pb` tool itself and exposed to the implementation.
 
-For example, to have access to the `include` function described later, it is possible to pattern match on the field `include` in the header:
+For example, to have access to the `include` function, it is possible to pattern match on the field `include` in the header:
 
 ```pbb
 |{include, ...}|
 ...
 ```
 
-This section only gives a brief preview of the file header and builtins. The exact details and the role of the `include` function will be explained in later chapters.
+The builtins available in the header are:
+
+- `cwd` - the path of the directory containing the current file, described in the chapter on [paths](5-paths.md)
+- `include` - a function that loads another `.pbb` file, described below
+- `pb` - functions for paths and builds, described in the chapters on [paths](5-paths.md) and [build rules](6-build-rules.md)
+- `ops` - operations on lists and objects
+- `dbg` - helpers for debugging
+
+They are all listed in the reference of [builtin functions](../language-reference/builtins.md).
+
+## Multiple files
+
+The builtin `include` takes the path of another `.pbb` file, and returns what that file evaluates to. The file header of the included file gets its own builtins, where `cwd` is the directory of the included file itself.
+
+For example, given a file `values.pbb`:
+
+```pbb
+|{...}|
+{
+  name = "demo";
+  version = 3;
+}
+```
+
+it can be used from another file in the same directory:
+
+```pbb
+|{cwd, include, ...}|
+let
+  values = include (cwd / "values.pbb");
+in
+  values.version + 1
+```
+
+This evaluates to `4`.
+
+If the included file should take arguments, the common pattern is to let it evaluate to a function, by adding a second set of arguments after the file header. Given `greet.pbb`:
+
+```pbb
+|{...}|
+|name|
+"hello ${name}"
+```
+
+then `include (cwd / "greet.pbb") "world"` evaluates to `"hello world"`.

@@ -1,10 +1,10 @@
 # Pill 1 - Basic builds
 
-At first, given an understanding of the language of
-[lead-build](https://lead-build.readthedocs.io), it is quite simple to set up
-a basic modular build system for a given language.
+At first, given an understanding of the [Lead language](../language/index.md),
+it is quite simple to set up a basic modular build system for a given
+programming language.
 
-It is recommended to read through the documentation and familiarize yourself
+It is recommended to read through the language guide and familiarize yourself
 with the basics of the language before reading this section.
 
 For example, a C module usually consists of a given set of parameters. In this
@@ -28,7 +28,7 @@ We can then easily define a module as:
 }
 ```
 
-The language definition can then be implemented as a library that compiles the
+The support for the C language can then be implemented as a library that compiles the
 files into an output binary. Of course, more configuration parameters can be
 added, such as which compilers to use, compiler flags, and defines, and so on.
 
@@ -84,8 +84,8 @@ It can be seen that:
 - the object files are compiled from source using two rules
 
 In ninja, the actual rule names that are generated are only internal references.
-Therefore, in lead-build, those are just generated to be unique and best effort
-to be descriptive.
+Therefore, in lead-build, those are just generated to be unique, and as
+descriptive as possible.
 
 ## Conclusion
 

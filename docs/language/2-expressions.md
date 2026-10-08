@@ -12,6 +12,7 @@ An expression is any construct that produces a value. This includes:
 - Objects, lists, and tuples
 - Operators such as `/` or `++`
 - Let-bindings
+- `switch` and `match` expressions
 - References to previously defined names
 
 Every expression evaluates to exactly one value, but that value may be a compound type, such as an object.
@@ -70,9 +71,21 @@ Each field in a composite type may also be an expression. For example:
 
 Just a note: paths in the example above are just strings to illustrate the concept of expressions. In reality, paths use their own type, which will be introduced later.
 
+When the field name is not known in advance, use `obj.{expr}`. The expression inside the braces must evaluate to a string, which is used as the field name.
+
+```pbb
+let
+  key = "name";
+  obj = { name = "demo"; };
+in
+  obj.{key}
+```
+
+This evaluates to `"demo"`.
+
 ## Switch expressions
 
-Lead-build also supports a `switch` expression for choosing between a small number of alternatives. The first matching case is used, and an optional `_ => ...` case can provide a default when nothing matches.
+Lead also supports a `switch` expression for choosing between a small number of alternatives. The first matching case is used, and an optional `_ => ...` case can provide a default when nothing matches.
 
 ```pbb
 let
@@ -85,7 +98,7 @@ in
   }
 ```
 
-Each case is written as `matcher => expression;`. Matchers are compared against the value after `switch` in order, and the first equal case wins.
+Each case is written as `value => expression;`. The values are compared against the value after `switch` in order, and the first equal case wins. If no case is equal, and there is no `_` case, it is an error.
 
 A `switch` compares values. To choose a case based on the *shape* of a value instead, such as the length of a list or the fields of an object, there is also a `match` expression. It builds on pattern matching, and is described in the [next chapter](3-functions.md#match-expressions).
 
@@ -112,8 +125,6 @@ Escape sequences inside strings are written with a backslash. For example:
 
 A newline inside a string literal is represented as `\n`, so the first example evaluates to a string containing a line break between `hello` and `world`.
 
-A comment starts when `#` appears outside a quoted string and continues to the end of that line. Inside a quoted string, `#` is regular text and becomes part of the string value.
-
 String interpolation can be used to embed expressions inside a string. Expressions inside `${...}` are evaluated and inserted into the string. For example:
 
 ```pbb
@@ -125,23 +136,13 @@ in
 
 This evaluates to the concatenation `"hello" + myvar`, so the result is `"hello world"`.
 
-When the field name is computed at runtime, use `obj.{expr}`. The expression inside braces must evaluate to a string key.
-
-```pbb
-let
-  key = "name";
-  obj = { name = "demo"; };
-in
-  obj.{key}
-```
-
 ## Let-bindings and variables
 
-Simply computing expressions does not add much unless there is a way to reuse values and give them names. The concept of reusing values is based on the `let <set-statements> in <expression>` construct in lead-build.
+Simply computing expressions does not add much unless there is a way to reuse values and give them names. The concept of reusing values is based on the `let <set-statements> in <expression>` construct in Lead.
 
 A `let`/`in` construct provides a list of variable allocation statements, which are evaluated in order. Each variable allocation statement has the form `destination = expression;`, where the destination is a variable pattern, and `expression` is an expression as described in this chapter, which may even be another `let`/`in` construct.
 
-The variable pattern is discussed further in the chapter on advanced pattern matching. For now, we keep it to the simplest construct: a simple variable name.
+The variable pattern is discussed further in the section on [pattern matching](3-functions.md#pattern-matching) in the next chapter. For now, we keep it to the simplest construct: a simple variable name.
 
 The variables can then be used in subsequent set statements and in the final expression, which is the result of the `let ... in ...` construct.
 

@@ -2,7 +2,7 @@
 
 So far, apart from pill 4, we have used a specific function to handle C builds.
 
-But one of the core concepts of the lead build system, with `lead-lib` and
+But one of the core concepts of the Lead Build System, with `lead-lib` and
 `lead-build`, is that you never create a language-specific project, like a C
 project. Instead, you create a project containing C code or a combination of
 languages.

@@ -1,6 +1,6 @@
-# Lead Build Language
+# Lead Language
 
-This guide introduces the Lead Build language from first principles. It walks through the core syntax, expressions, functions, pattern matching, and iteration, so later chapters build naturally on the earlier ones.
+This guide introduces the Lead language from first principles. It walks through the core syntax, expressions, functions, pattern matching, and iteration, so later chapters build naturally on the earlier ones.
 
 ## Evaluation and testing
 

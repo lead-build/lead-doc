@@ -1,9 +1,14 @@
 # Builtin functions
 
-The builtins are split into two categories:
+The builtins are passed to each `.pbb` file as fields of the argument to the
+[file header](../language/3-functions.md#file-header-and-builtins).
+
+Besides the builtin values `cwd`, the path to the directory of the current file,
+and `include`, a function that loads another `.pbb` file, the builtins are split
+into three categories:
 
 - `ops` - operations, to access basic structures, like native objects and lists.
-- `pb` - access lead-build related objects, like paths and builds.
+- `pb` - access build related values, like paths and builds.
 - `dbg` - for debugging
 
 ## Operations
@@ -34,15 +39,15 @@ b = [
 ];
 ```
 
-Any missing index is padded with `null`
+Any missing index is padded with `null`.
 
 ### `ops.transposeObjs`
 
-Special case of `ops.transpose`, taking a list of objects, returing an object
+Special case of `ops.transpose`, taking a list of objects, returning an object
 of lists.
 
-Difference from `ops.transpose` is that the inner lists are not padded with
-null, and thus not maintaining the indexes.
+The difference from `ops.transpose` is that the inner lists are not padded with
+`null`, and thus do not maintain the indexes.
 
 ```pbb
 a = [
@@ -50,7 +55,7 @@ a = [
   { x = 3; z = 4; },
 ];
 
-b = ops.transposeObjs;
+b = ops.transposeObjs a;
 ```
 produces:
 ```pbb
@@ -63,24 +68,27 @@ b = {
 
 ### `ops.recurse`
 
-Call a function with its output as argument.
+Calls a function with its own output as argument.
 
-Is roughly equivalent to:
+It is roughly equivalent to:
 
 ```pbb
-recurse = |f| (|prev _| fs prev for null : [1,2,3,4,5...infinite]);
+recurse = |f| (|prev _| f prev for null : [1,2,3,4,5...infinite]);
 ```
 
-so that following two lines are functionally identical
+so that the following two lines are functionally identical:
+
 ```pbb
 out = ops.recurse func
 out = func (func (func (func ...infinitely...)))
 ```
 
-It is using fact that in the above `out == func out`, which can be leveraged to
-optimize by using lazy evaluation, so same parameter of out (given out is an
-object) don't need to be reevaluated for differnet levels of recursion.
+It uses the fact that in the above, `out == func out`. Together with lazy
+evaluation, that means a field of `out` (given that `out` is an object) doesn't
+need to be reevaluated for each level of recursion.
 
+More information is available in the pill on
+[dependent variables](../under-the-hood/4-dependent-vars.md).
 
 ## Builtin path functions
 
@@ -91,9 +99,9 @@ Rewrites a path by replacing a directory prefix.
 Syntax:
 ```pbb
 pb.translate {
-  input = path,
-  from = path or [path, ...],
-  to = path
+  input = path;
+  from = path or [path, ...];
+  to = path;
 }
 ```
 
@@ -106,20 +114,20 @@ If `from` is a list, the first matching prefix is used.
 
 ### `pb.rebase`
 
-Converts a Lead path into a path value rebased to another filesystem base path.
+Converts a path into a string, expressing the path relative to another base path.
 
 Syntax:
 ```pbb
 pb.rebase {
-  path = path,
-  base = path
+  path = path;
+  base = path;
 }
 ```
 
 - `path`: the path value to convert
-- `base`: the base directory to rebase the output against
+- `base`: the directory the result should be relative to
 
-Returns a path value that keeps the internal relative location of `path`, but expressed under `base`.
+Returns a string with the relative path from `base` to `path`. For example, rebasing `cwd / "src" / "main.c"` to the base `cwd / "build"` gives `"../src/main.c"`.
 
 ### `pb.lock`
 
@@ -154,10 +162,9 @@ in
 Creates a build-rule function describing how a build step should be performed. A rule captures the relevant inputs, outputs, and execution behavior for a single build action.
 
 ```pbb
-pb.rule |{input, output, ...}| {
-  name = "compile";
+compile_rule = pb.rule (|{input, output, ...}| {
   command = ["gcc", "-c", "-o", output, input];
-};
+});
 ```
 
 Note: In `pb.rule`, object matcher defaults (for example, `|{input ? fallback, ...}|`) are not supported.
@@ -174,12 +181,10 @@ compile_rule {
 The optional variable `deps` adds any implicit dependencies to the build, and is not passed to the rule itself. It can be either a single file/build or a list of files/builds.
 
 More information is available in the [builds](../language/6-build-rules.md) chapter.
-# Debugging builtins
-
-Lead Build exposes a `dbg` builtin object for debugging expressions during
-evaluation.
 
 ## Debugging
+
+The `dbg` builtin object is used for debugging expressions during evaluation.
 
 ### `dbg.trace`
 
@@ -194,7 +199,7 @@ Behavior:
 - First runs `eval` on `expr`. Any eval error is ignored.
 - Prints `expr` using standard output.
 - Returns the same expression value, so it can be inserted into larger
-- expressions without changing behavior.
+  expressions without changing behavior.
 
 Example:
 ```pbb

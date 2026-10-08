@@ -1,32 +1,34 @@
-# Lead Build
+# Lead Build System
 
-Lead Build is a **declarative build system** for expressing build outputs in terms of their dependencies. Instead of scripting commands in sequence, you describe the desired result and how it is composed.
+The Lead Build System, or just **Lead**, is a **declarative build system** for expressing build outputs in terms of their dependencies. Instead of scripting commands in sequence, you describe the desired result and how it is composed.
 
-A path value may refer to either a file or a directory, and the system automatically handles the dependencies between them.
+Lead reads your build description and generates a [Ninja](https://ninja-build.org/) build file, leaving dependency tracking and parallel execution to Ninja.
 
-## Why Lead Build?
+## Why Lead?
 
 - **Declarative**: Describe *what* to build, not *how* to build it.
 - **Modular**: Build logic can be packaged and reused across projects without copying.
-- **Pure**: Each build depends on its input parameters only—no global state—enabling multiple variants in a single configuration.
+- **Pure**: Each build depends on its input parameters only — no global state — enabling multiple variants in a single configuration.
 - **Extensible**: Easily combine multiple languages, targets, and configurations without rewriting the build from scratch.
 
 ## Key Concepts
 
 ### Purity
 
-Lead Build is *pure* in the functional programming sense—with no side effects. This means:
+Lead is *pure* in the functional programming sense, with no side effects. This means:
 
 - Each build is a **pure function** of its input parameters
 - The same inputs always produce the same outputs
-- There is no hidden global state, environment variables that affect behavior, or implicit dependencies
-- What you see in your configuration is exactly what you get—nothing hidden or implicit
+- There is no hidden global state, no environment variables that affect behavior, and no implicit dependencies
+- What you see in your configuration is exactly what you get
 
-### Lead Build (the language)
-A small, powerful declarative language for describing build outputs. Learn the syntax and concepts in the [Lead Language](language/index.md) guide.
+### The parts of Lead
 
-### Lead Lib (the library)
-A collection of conventions and helpers that turn the bare language into a practical build system. It provides:
+Lead consists of two parts, which are used together:
+
+**lead-build** (the tool and the language) provides the `pb` command, which evaluates build descriptions written in the Lead language, a small declarative language for describing build outputs. It also provides a formatter and a language server. Learn the syntax and concepts in the [Lead Language](language/index.md) guide, and about the commands under [Tooling](tooling/index.md).
+
+**Lead Lib** (the library) is a collection of conventions and helpers, written in the Lead language, that turn the bare language into a practical build system. It provides:
 
 - Standardized build patterns and module interfaces
 - Language helpers for C, Rust, and more
@@ -37,36 +39,17 @@ A collection of conventions and helpers that turn the bare language into a pract
 
 So what does it look like?
 
-It's just a little bit more in the simplest case than other build enviornments.
-
-But don't be fooled, all makes sense, and it's because it is both extensible,
-configurable and modular.
+In the simplest case, it is a little more to write than in other build environments. That is the price of every part being extensible, configurable and modular, and it pays off as soon as the project grows.
 
 ```pbb
-|{ cwd, include, ... }|
-let
-    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
-in
-lib.build [
-    lib.lang.c.app_build "hello_world",
-    lib.lang.config.simple "${cwd}",
-    lib.lang.c.mod {
-        src = [
-            "${cwd}/src/main.c",
-            "${cwd}/src/lib.c",
-        ];
-        inc = [
-            "${cwd}/src/"
-        ];
-    },
-]
+--8<-- "examples/simple/main.pbb"
 ```
 
-Or if you want more, checkout the examples under the cookbook.
+If you want more, check out the examples in the [Cookbook](cookbook/index.md).
 
 ## Getting Started
 
-New to Lead Build? Start here:
+New to Lead? Start here:
 
 1. **[Getting Started](getting-started.md)** — Installation and a quick walkthrough
 2. **[Cookbook](cookbook/index.md)** — Common build patterns with examples
@@ -76,7 +59,7 @@ New to Lead Build? Start here:
 
 Once you're comfortable with the basics:
 
-- **[Language Reference](language-reference/language.md)** — Complete syntax and built-in functions
+- **[Language Reference](language-reference/language.md)** — Complete syntax, and the [builtin functions](language-reference/builtins.md)
 - **[Lead Lib Internals](under-the-hood/index.md)** — Advanced patterns: multiple targets, configuration, and modularization
 
 ## Comparison with other build systems
@@ -123,8 +106,8 @@ A bigger issue appears when writing for embedded systems and multiple targets:
 
 Any build system that relies on global state - for example, one that assumes a global list of source files - becomes problematic when the set of inputs is target-dependent.
 
-This is why declarative builds matter: each build is *pure* - it depends on its input parameters and *only* its input parameters, even if it at first glance looks a bit more complicated.
+This is why declarative builds matter: each build is *pure* - it depends on its input parameters and *only* its input parameters, even if it looks a bit more complicated at first glance.
 
 ## Author
 
-Lead Build is created and maintained by pengi / Max Sikström ([lead@pengi.se](mailto:lead@pengi.se)).
+Lead is created and maintained by pengi / Max Sikström ([lead@pengi.se](mailto:lead@pengi.se)).

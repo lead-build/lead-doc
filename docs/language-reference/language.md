@@ -6,12 +6,12 @@ language features and their usage.
 
 ## Types
 
-Multiple types are available in the langauge. Those available to the user are
+Multiple types are available in the language. Those available to the user are
 listed below.
 
 ### Numbers
 
-Numeric literals represent integer.
+Numeric literals represent integers.
 
 Example: `42` or `-23`
 
@@ -36,9 +36,9 @@ Strings are quoted text values. They may contain escaped characters such as `\"`
 for a quote and `\\` for a backslash. Strings are commonly used for path
 segments and textual data.
 
-Strings may also contain sequence `${expr}` containing a sub expression. Usually
-for embedding a variable. This is identical to concatenation of the parts using
-`+` operator.
+Strings may also contain the sequence `${expr}`, containing a sub expression,
+usually for embedding a variable. This is identical to concatenation of the
+parts using the `+` operator.
 
 Example: `"hellorld"` or `"Hello ${name}!"`
 
@@ -71,7 +71,7 @@ Example:
 Lists are ordered collections written as `[item1, item2, ...]`. They hold a
 sequence of values of any type.
 
-Items are separated with `,`. Last element may have an optional trailing `,`.
+Items are separated with `,`. The last element may have an optional trailing `,`.
 
 Example:
 ```pbb
@@ -81,6 +81,17 @@ Example:
     "c.c"
 ]
 ```
+
+### Tuples
+
+Tuples are fixed-size groupings of values, written as `(item1, item2, ...)`.
+They are used for returning multiple values, and represent the `(key, value)`
+pairs when iterating over objects.
+
+A tuple of a single element is written with a trailing `,`, as `(item1,)`, to
+tell it apart from an expression in parentheses.
+
+Example: `("x", 42)`
 
 ### Paths
 
@@ -104,7 +115,7 @@ directory.
 
 Failing example: `srcdir / ".."` will not work due to locking.
 ```pbb
-|{cwd, ...}|
+|{cwd, pb, ...}|
 let
   srcdir = pb.lock (cwd / "src");
   back = srcdir / "..";
@@ -115,11 +126,13 @@ in
 
 ### Builds
 
-Build objects are returned by calling the function produced by `pb.rule`, represneting a build operation.
+Build objects are returned by calling the function produced by `pb.rule`, representing a build operation.
 
 ### Build rules
 
-Build rule functions are returned by internal `pb.rule` represneting a build rule.
+Build rule functions are returned by the builtin `pb.rule`, representing a build rule.
+
+More information is available in the [build rules](../language/6-build-rules.md) chapter.
 
 #### Build rule placeholder object
 
@@ -127,11 +140,12 @@ A placeholder for a variable, available internally in the function defining a `p
 
 ## Expressions structure
 
-Following operators are available:
+The following operators are available. A lower precedence number binds less tightly, so `a + b * c` is evaluated as `a + (b * c)`.
 
 | Operator                     | Precedence | Description                       |
 | ---------------------------- | ---------- | --------------------------------- |
 | `let ... in ...`             | 1          | let block expression              |
+| `bind ... in ...`            | 1          | bind block expression (internal)  |
 | `|matcher| expr`             | 1          | Function definition               |
 | `lhs -> rhs`                 | 2          | Logical implication               |
 | `lhs || rhs`                 | 3          | Logical or                        |
@@ -144,11 +158,11 @@ Following operators are available:
 | `lhs >= rhs`                 | 6          | Greater than or equal             |
 | `lhs // rhs`                 | 7          | Object update/merge               |
 | `!expr`                      | 8          | Logical not                       |
-| `lhs + rhs`                  | 9          | Addition or string concatentation |
+| `lhs + rhs`                  | 9          | Addition or string concatenation  |
 | `lhs - rhs`                  | 9          | Subtraction                       |
 | `lhs * rhs`                  | 10         | Multiplication                    |
 | `lhs / rhs`                  | 10         | Division or path extension        |
-| `lhs ++ rhs`                 | 11         | List concactenation               |
+| `lhs ++ rhs`                 | 11         | List concatenation                |
 | `lhs ? rhs`                  | 12         | Has attribute                     |
 | `-expr`                      | 13         | Numeric negation                  |
 | `func arg`                   | 14         | Function call                     |
@@ -161,9 +175,9 @@ Following operators are available:
 | `match expr { ... }`         | 16         | match expression                  |
 
 
-### Function defintion
+### Function definition
 
-A function is represented as `|matchers| expr`, where matcher is a list of zero or more matchers,
+A function is represented as `|matchers| expr`, where `matchers` is a list of zero or more matchers,
 separated by space, providing input variables to the expression `expr`.
 
 Matchers can be any matcher defined in the [matcher chapter](#matchers) below.
@@ -174,12 +188,34 @@ Multiple matchers is equal to multiple nested functions. Thus `|a b| expr` is eq
 
 More information available in [function chapter](../language/3-functions.md) in the documentation.
 
+### Bind expressions
+
+`bind name = expr; ... in expr` evaluates an expression with exactly the given
+set of variables as its scope. It is the written form of how the interpreter
+internally represents an expression together with the scope it is evaluated
+in.
+
+It exists mainly for testing and debugging of lead-build itself, and is not
+intended to be used in build descriptions; use `let ... in ...` instead. It is
+noted here since it is a reserved word, and since it may show up in debug
+output, such as from `pb -E` or in error messages.
+
+It differs from `let ... in ...` in three ways:
+
+- The left-hand side of each binding is a plain name, not a matcher.
+- The bindings *replace* the scope instead of extending it. Variables from
+  the surrounding scope are not available in the expression after `in`.
+- The values of the bindings have no scope of their own. They can not refer
+  to each other, nor to variables from the surrounding scope.
+
+For example, `bind a = 2; b = 3; in a + b` evaluates to `5`.
+
 ### Logical "and" and "or"
 
-`&&` and `||` is evaluated lazy.
+`&&` and `||` are evaluated lazily.
 
-- Given `rhs && lhs`, and `rhs` is false, then `lhs` is not evaluated.
-- Given `rhs || lhs`, and `rhs` is true, then `lhs` is not evaluated.
+- Given `lhs && rhs`, and `lhs` is false, then `rhs` is not evaluated.
+- Given `lhs || rhs`, and `lhs` is true, then `rhs` is not evaluated.
 
 ### List and object iteration
 
@@ -196,15 +232,15 @@ Both forms also support an optional filter clause:
 - generate a filtered object: `{ func for iterable if filter }`
 
 `iterable` can be either a list or object, and `func` is a function that
-transform each element in iterable to an output element.
+transforms each element in `iterable` to an output element.
 
 When present, `filter` is evaluated before `func` for each input element.
 Only elements where `filter` evaluates to `true` are kept. `filter` is a
-function taking the same argument as `func`, returning `true` or `false`
+function taking the same argument as `func`, returning `true` or `false`.
 
-For lists, element is passed, or received directly. For objects, each element
-is represented to `func` as a tuple of `(key, value)`, both as argument and
-return value.
+For lists, each element is passed, or returned, directly. For objects, each
+element is represented to `func` as a tuple of `(key, value)`, both as argument
+and return value.
 
 The filter receives the same input representation as the mapper, meaning list
 elements for list input and `(key, value)` tuples for object input.
@@ -224,6 +260,29 @@ Example with filtering:
 [ |a| a * 2 for [1, 2, 3] if |a| a < 3 ]
 ```
 
+More information is available in the [list operations](../language/4-list-operations.md) chapter.
+
+### List fold
+
+A fold reduces a list to a single value, by calling a function with the result
+so far and each element in turn:
+
+```pbb
+( func for init: list )
+( func for list )
+```
+
+`func` takes two arguments: the accumulated value, and the current element. It
+returns the next accumulated value. `init` is the first accumulated value. If
+`init:` is left out, the first element of the list is used instead, and the
+fold continues with the rest. Folding an empty list without `init` is an error.
+
+Example, evaluating to `10`:
+
+```pbb
+(|acc v| acc + v for 0: [1, 2, 3, 4])
+```
+
 ### Switch expressions
 
 Switch expressions choose the first matching case from a series of value comparisons.
@@ -240,12 +299,12 @@ The general shape is:
 
 ```pbb
 switch expr {
-  matcher => result;
+  value => result;
   _ => default_result;
 }
 ```
 
-Cases are checked in order. The first matcher equal to the switch value wins, and the optional `_` case acts as a default when no case matches.
+Cases are checked in order. The first case whose value is equal to the switch value wins, and the optional `_` case acts as a default when no case matches. If no case matches and there is no default, evaluation fails with an error.
 
 ### Match expressions
 

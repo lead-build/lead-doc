@@ -8,7 +8,7 @@ parameters from a submodule, and how to place compiler configuration in a
 module. However, there is a limitation: parameters cannot depend on one another.
 
 To do this, we are not going to generate a ninja build file, but instead use the
-`pb -E` feature to look at the evaluated lead source tree.
+`pb -E` feature to look at the evaluated result.
 
 ## Simplification
 
@@ -28,8 +28,8 @@ Now try to evaluate it using `pb -E -i part_1.pbb`. It should output:
 [root]/$/out/my_app-x86_64
 ```
 
-Note that the path is written as a Path object, as described in the
-[lead-build](https://lead-build.readthedocs.io) documentation.
+Note that the result is a path, as described in the chapter on
+[paths](../language/5-paths.md).
 
 The question is how we can generate a parameter within the module itself for the
 output file, dependent on the three parameters. For example:
@@ -61,8 +61,8 @@ Create a `part_2.pbb` containing:
 --8<-- "examples/under-the-hood/4-dependent-vars/part_2.pbb"
 ```
 
-Since nothing within the module depends on `l`, we can simply pass an empty
-object to it.
+Since nothing within the module depends on the argument `l` yet, we can simply
+pass an empty object to it.
 
 The result is the same as the previous attempt:
 
@@ -99,8 +99,11 @@ resolve one reference. What if we need more levels of referencing?
 
 ## Recursion
 
-Ulitimately, this would be done infinitely, but to start with, we set "infinite"
+Ultimately, this would be done infinitely, but to start with, we set "infinite"
 to 5 iterations, and try to make it generic instead.
+
+Since the argument is the module itself from the previous iteration, it is from
+here on called `self` instead of `l`.
 
 To start with, look at the concept of a couple of iterations:
 
@@ -116,22 +119,24 @@ out = mod iter5;
 ```
 
 This maps to the operation of fold, so that:
+
 ```pbb
-mod = | l | ...;
+mod = |self| ...;
 
 out = (|prev _| mod prev for null:[1,2,3,4,5]);
 ```
 
-The list `[1,2,3,4]` is there only to provide something to iterate over. The
+The list `[1,2,3,4,5]` is there only to provide something to iterate over. The
 value is ignored, as the second argument to the iterator function, `_`, and the
-iteration starts at `null`. The values are semantically identical.
+iteration starts at `null`. The two versions are semantically identical.
 
 The construct in the second line can be rewritten as a helper function:
+
 ```pbb
 recurse = |mod| (|prev _| mod prev for null:[1,2,3,4,5]);
 ```
 
-Lets add it to the code above as `part_4.pbb`:
+Let's add it to the code above as `part_4.pbb`:
 
 ```pbb
 --8<-- "examples/under-the-hood/4-dependent-vars/part_4.pbb"
@@ -142,7 +147,8 @@ to also fully leverage the laziness property of the language, this recurse
 function, with infinite iterations, is implemented as a builtin to the language,
 called `ops.recurse`.
 
-lets try it out, as `part_5.pbb`:
+Let's try it out, as `part_5.pbb`:
+
 ```pbb
 --8<-- "examples/under-the-hood/4-dependent-vars/part_5.pbb"
 ```
@@ -165,11 +171,11 @@ This resolves to:
 
 ## Infinite recursion
 
-As shown in the previous chapter, this is a powerful concept for allowing
+As shown in the previous section, this is a powerful concept for allowing
 dependencies between parameters.
 
 However, it only works if it eventually ends up in parameters that are not
-dependent on `l`. If not, there will be no termination, and the system will end
+dependent on `self`. If not, there will be no termination, and the system will end
 up in an infinite recursion loop that is quite hard to debug.
 
 One example is `part_7`:
@@ -224,21 +230,24 @@ In this case, it will output something similar to:
 ... Resolving bound expression at part_7.pbb:4:17
 ```
 
-In this case, it can be seen that there are a lot of focus around `part_7.pbb:4`
-and `part_7.pbb:5`, which happens to be the lines:
+In this case, it can be seen that there is a lot of activity around
+`part_7.pbb:4` and `part_7.pbb:5`, which happen to be the lines:
 
 ```pbb
         var_a = self.var_b + "a";
         var_b = self.var_a + "b";
 ```
+
 which gives a clue of where the infinite recursion happens.
 
 ## Merge
 
-This however means we need to modify the merging slightly, by passing the `self`
+Having modules as functions, however, means we need to modify the merging
+slightly, by passing the `self`
 parameter forward.
 
-Given that we have a `merge_objs` function, that merges two resolved modules,
+Given that we have a `merge_objs` function, that merges a list of resolved
+modules,
 the `self` parameter can be passed down simply by using:
 
 ```pbb

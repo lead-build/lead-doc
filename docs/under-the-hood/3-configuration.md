@@ -91,14 +91,14 @@ We still need to implement `lib/lib.pbb` though:
 
 In this case, we re-export the `lang_c` and `lang_config.pbb` as `lib.c` and
 `lib.config`, while implementing a merge function that merges all language parts
-individually. `mod ? "language"` is a `lead-build` language construct used to
-check whether a field is defined in an object.
+individually. `mod ? "language"` is a Lead language construct used to check
+whether a field is defined in an object.
 
-Refer to [lead-build documentation](https://lead-build.readthedocs.io) if you
-want to read more about how list comprehensions work. Otherwise, it is simply
-filtering out each language submodule from a list of modules.
+Refer to the chapter on [list operations](../language/4-list-operations.md) if
+you want to read more about how the map and filter constructs work. Otherwise,
+it is simply filtering out each language submodule from a list of modules.
 
-# Conclusion
+## Conclusion
 
 In this pill, we have looked at how to place configuration in a module to keep
 a build entirely as a set of modules.

@@ -1,6 +1,7 @@
-site_name: Lead Build
+site_name: Lead Build System
+site_url: https://lead.readthedocs.io/
 site_author: Max Sikström
-site_description: Lead - Declarative build environment
+site_description: Lead - a declarative build system
 
 theme:
   name: readthedocs
@@ -12,6 +13,7 @@ markdown_extensions:
       guess_lang: false
   - pymdownx.snippets:
       base_path: .
+      check_paths: true
 
 extra_css:
   - stylesheets/pygments.css

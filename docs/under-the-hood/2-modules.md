@@ -17,7 +17,7 @@ In the previous pill, we defined an `app` module, which was implemented as a
 
 Let's say we want to create a generic model library.
 
-At a first glance, we can simply split it into two modules.
+At first glance, we can simply split it into two modules.
 
 `main.pbb` can then be:
 
@@ -114,7 +114,7 @@ build my_app: gcc_o main.o model/model.o model/some_other_model.o
 
 placing the object files beside the `.c` files, as expected so far.
 
-# Conclusions
+## Conclusion
 
 We have shown the power of being able to split code into modules, where modules
 can split the build into:
