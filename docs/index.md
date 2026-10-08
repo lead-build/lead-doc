@@ -124,3 +124,7 @@ A bigger issue appears when writing for embedded systems and multiple targets:
 Any build system that relies on global state - for example, one that assumes a global list of source files - becomes problematic when the set of inputs is target-dependent.
 
 This is why declarative builds matter: each build is *pure* - it depends on its input parameters and *only* its input parameters, even if it at first glance looks a bit more complicated.
+
+## Author
+
+Lead Build is created and maintained by pengi / Max Sikström ([lead@pengi.se](mailto:lead@pengi.se)).

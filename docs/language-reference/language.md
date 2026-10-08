@@ -158,6 +158,7 @@ Following operators are available:
 | `[ func for iterable ]`      | 16         | list map                          |
 | `{ func for iterable }`      | 16         | object map                        |
 | `switch expr { ... }`        | 16         | switch expression                 |
+| `match expr { ... }`         | 16         | match expression                  |
 
 
 ### Function defintion
@@ -165,7 +166,7 @@ Following operators are available:
 A function is represented as `|matchers| expr`, where matcher is a list of zero or more matchers,
 separated by space, providing input variables to the expression `expr`.
 
-Matchers can be any matcher defined in the matcher chapter below.
+Matchers can be any matcher defined in the [matcher chapter](#matchers) below.
 
 No matchers in the list is equivalent to no function definition at all. Thus `|| expr` is equal to `expr`
 
@@ -245,3 +246,82 @@ switch expr {
 ```
 
 Cases are checked in order. The first matcher equal to the switch value wins, and the optional `_` case acts as a default when no case matches.
+
+### Match expressions
+
+Match expressions choose the first case whose matcher fits the shape of the value.
+
+```pbb
+match args {
+  [] => "none";
+  [single] => single;
+  [first, second, ...] => "${first} ${second}";
+  _ => "not a list";
+}
+```
+
+The general shape is:
+
+```pbb
+match expr {
+  matcher => result;
+  matcher => result;
+}
+```
+
+Cases are checked in order, and the first [matcher](#matchers) that fits the value wins. Variables bound by that matcher are available in the result of that case only, and shadow variables of the same name from the surrounding scope.
+
+There is no separate default case; since the matcher `_` fits any value, a last case of `_ => result;` acts as a default. If no case fits, evaluation fails with an error.
+
+Unlike `switch`, no values are compared. A matcher only describes a shape, so `match` can tell a list from a tuple, lists of different lengths, or objects with different fields, but not `1` from `2`.
+
+## Matchers
+
+Matchers unpack a value into variables. They are used for function arguments, in `let ... in ...` bindings, and for the cases in a `match` expression.
+
+| Matcher                   | Fits                                                    | Binds                             |
+| ------------------------- | ------------------------------------------------------- | --------------------------------- |
+| `name`                    | Any value                                               | The value as `name`               |
+| `_`                       | Any value                                               | Nothing                           |
+| `(m1, m2)`                | A tuple of exactly that size                            | What each sub-matcher binds       |
+| `[m1, m2]`                | A list of exactly that length                           | What each sub-matcher binds       |
+| `[m1, m2, ...]`           | A list of at least that length                          | What each sub-matcher binds       |
+| `{ f1, f2 }`              | An object with exactly those fields                     | What each field matcher binds     |
+| `{ f1, f2, ... }`         | An object with at least those fields                    | What each field matcher binds     |
+| `matcher @ name`          | Whatever `matcher` fits                                 | Same as `matcher`, and the entire value as `name` |
+
+As for tuple expressions, a tuple matcher of a single element is written with a trailing comma: `(m1,)`.
+
+In a function argument or a `let` binding, a value that doesn't fit the matcher is an error. In a `match` expression, the next case is tried instead.
+
+### List matchers
+
+A list matcher `[m1, m2, m3]` fits a list of exactly as many elements as there are sub-matchers, matching each element with the sub-matcher in the same position. `[]` fits only the empty list.
+
+A list matcher ending with `...` matches a prefix of the list. `[m1, m2, ...]` fits a list of two or more elements, matching the first two, and ignoring the rest. The `...` stands for zero or more elements, so `[...]` fits any list.
+
+`...` is only allowed as the last element, and the elements it stands for are not bound to a variable. Use `[m1, ...] @ name` to also get the entire list.
+
+```pbb
+let
+  [first, second, ...] = [10, 20, 30, 40];
+in
+  first + second
+```
+
+This evaluates to `30`.
+
+### Object matchers
+
+An object matcher is a list of field matchers separated by commas, each one of:
+
+| Field matcher               | Description                                                            |
+| --------------------------- | ---------------------------------------------------------------------- |
+| `name`                      | Binds the field `name` to a variable of the same name                  |
+| `name = matcher`            | Matches the field `name` using `matcher`                               |
+| `name ? default`            | As `name`, using the expression `default` if the field is missing      |
+| `name = matcher ? default`  | As `name = matcher`, using the expression `default` if the field is missing |
+
+A field that is missing, and has no default, doesn't fit. Fields in the object that are not named in the matcher don't fit either, unless the matcher ends with `...`.
+
+More information and examples are available in the [function chapter](../language/3-functions.md#pattern-matching) in the documentation.

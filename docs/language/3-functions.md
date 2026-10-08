@@ -104,6 +104,7 @@ A pattern can be one of:
 
 - variable - a single name, representing the entire argument
 - tuple pattern - written as a tuple `(a, b, c)`, where each field is itself a pattern, expecting a tuple of the correct size
+- list pattern - written as a list `[a, b, c]`, where each element is itself a pattern, expecting a list of the correct length. Ending it with `...`, as in `[a, b, ...]`, allows the list to be longer
 - object pattern - written as a pattern surrounded by braces `{...}`, containing a set of match statements separated by commas
 - null pattern - a single `_`, matching anything, but ignoring the value and not storing it
 
@@ -117,6 +118,8 @@ Optional default values can be added with `name ? default_expr` or `name = subma
 If a field is missing and no default is defined for that field, matching fails with an error.
 
 An object pattern normally expects all fields to be extracted; otherwise it will return an error. If only a few fields are expected to be unpacked but more fields should be allowed, the object matcher can end with a `...` statement, allowing extra fields.
+
+A list pattern normally expects the list to have exactly as many elements as the pattern; otherwise it will return an error. If only the first elements are of interest, the list pattern can end with `...`, which accepts any number of further elements, including none. So `[a, b, ...]` matches any list with at least two elements, and `[...]` matches any list. The `...` is only allowed at the end, and the remaining elements are not stored anywhere; use `@` as described below if the entire list is needed.
 
 Any matcher, except single-name object matchers, can be combined with `matcher @ variable`, causing the entire field to be stored in the variable while also being matched by the matcher. This is useful when extracting some fields of an object while still having access to the object. For example: `|{var, ...} @ obj| ...`.
 
@@ -158,6 +161,27 @@ in
 
 This evaluates to `7`.
 
+And to lists, here picking out the first two elements of a longer list:
+
+```pbb
+let
+  [first, second, ...] @ all = [10, 20, 30, 40];
+in
+  {
+    sum = first + second;
+    all = all;
+  }
+```
+
+This evaluates to:
+
+```pbb
+{
+  all = [10, 20, 30, 40];
+  sum = 30;
+}
+```
+
 Default values are especially useful for optional object fields in matcher patterns:
 
 ```pbb
@@ -168,6 +192,55 @@ in
 ```
 
 This evaluates to `15`.
+
+## Match expressions
+
+In a function argument or a `let` binding, a pattern that doesn't fit the value is an error. A `match` expression instead takes a list of patterns, and picks the first one that fits:
+
+```pbb
+let
+  describe = |value| match value {
+    [] => "empty list";
+    [only] => "list with one element";
+    [first, second, ...] => "list with at least two elements";
+    (a, b) => "pair";
+    { name, ... } => "object named ${name}";
+    _ => "something else";
+  };
+in
+  [
+    describe [],
+    describe [1, 2, 3],
+    describe (1, 2),
+    describe { name = "test"; size = 3; },
+    describe 17,
+  ]
+```
+
+This evaluates to:
+
+```pbb
+[
+  "empty list",
+  "list with at least two elements",
+  "pair",
+  "object named test",
+  "something else",
+]
+```
+
+Each case is written as `pattern => expression;`, where the pattern is any pattern described above. The cases are tried in order, and the first pattern that fits the value is used. The variables from that pattern are available in the expression of that case, and only there.
+
+A pattern fits the value if the value has the shape the pattern describes:
+
+- a variable or `_` fits any value
+- a tuple pattern fits a tuple of the same size
+- a list pattern fits a list of the same length, or with `...`, a list of at least that length
+- an object pattern fits an object having the fields of the pattern, and no other fields unless the pattern ends with `...`
+
+If no case fits, it is an error. A last case of `_ => ...` therefore works as a default.
+
+Note the difference from `switch`: a `switch` compares the value for equality with each case, while a `match` only looks at the shape of the value. A pattern can not contain a value to compare with, so a case of `x => ...` doesn't compare the value with a variable `x`; it fits anything, and stores it in a new variable `x`. To choose on both shape and value, use a `switch` on the variables inside the `match` case.
 
 ## File header and builtins
 

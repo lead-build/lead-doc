@@ -87,6 +87,8 @@ in
 
 Each case is written as `matcher => expression;`. Matchers are compared against the value after `switch` in order, and the first equal case wins.
 
+A `switch` compares values. To choose a case based on the *shape* of a value instead, such as the length of a list or the fields of an object, there is also a `match` expression. It builds on pattern matching, and is described in the [next chapter](3-functions.md#match-expressions).
+
 ## Null
 
 The literal `null` represents the absence of a value. It is only equal to itself; comparing it to any other value with `==` is `false`, and with `!=` is `true`:
