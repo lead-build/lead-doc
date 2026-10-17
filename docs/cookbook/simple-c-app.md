@@ -16,6 +16,28 @@ The simplest use case: a single C application with a few source files.
 - `lib.lang.config.simple "${cwd}"` — Sets up basic configuration for the project
 - `lib.lang.c.mod` — Defines the C module
 
+## Source file types
+
+The `src` list of `lib.lang.c.mod` accepts more than C files. The file type is selected from the file name:
+
+| Pattern | Handled as |
+| --- | --- |
+| `*.c` | C source, compiled with the C compiler |
+| `*.S` | Assembly that is run through the C preprocessor, so it can use `#include` and `#define`. Compiled like C, including dependency tracking of included files |
+| `*.s` | Assembly that is not preprocessed. Assembled by the C compiler without dependency tracking, since it cannot include anything |
+
+All of them produce an object file, which is linked into the application the same way, and the same `inc`, `defines` and `cflags` are passed in all cases. So adding an assembly file is just a matter of listing it:
+
+```pbb
+lib.lang.c.mod {
+    src = [
+        "${cwd}/src/main.c",
+        "${cwd}/src/startup.S",
+        "${cwd}/src/fast_copy.s",
+    ];
+}
+```
+
 ## Source Files
 
 The C sources used in this example:

@@ -104,3 +104,37 @@ lib.tk.flatten [
 
 This shows that two different `lib.build` calls are made, with different
 targets and different build directories.
+
+## Getting other outputs than the build
+
+`lib.build` always returns the field `common.out` of the resolved modules, which is the main way of describing what a project builds, and what `lib.lang.c.app_build` sets. But sometimes another part of the project is of interest, such as only the object files, or a path from the configuration.
+
+For that, there is `lib.combine`. It takes the same list of modules as `lib.build`, merges them together with the language defaults, and resolves all the dependent variables as described in pill 4, but returns the whole resolved module instead of just `common.out`. In fact, `lib.build` is defined as:
+
+```pbb
+build = |mods| (combine mods).common.out;
+```
+
+Any field in the result can then be used, and as usual, only the fields that are referenced are evaluated:
+
+```pbb
+|{ cwd, include, ... }|
+let
+    lib = include "${cwd}/lead-lib/lead-lib.pbb" { };
+
+    mods = [
+        lib.lang.c.app_build "my_app",
+        lib.lang.config.simple "${cwd}",
+        lib.lang.c.mod {
+            src = [ "${cwd}/src/main.c" ];
+            inc = [ "${cwd}/src/" ];
+        },
+    ];
+
+    combined = lib.combine mods;
+in
+    # Build only the object files, not the linked application
+    combined.c.obj
+```
+
+Combining the result of `lib.combine` with other modules is not needed; add the modules to the list before calling it.
