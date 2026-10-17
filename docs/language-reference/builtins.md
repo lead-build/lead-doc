@@ -140,6 +140,50 @@ pb.lock path
 
 More information is available in the [paths](../language/5-paths.md) chapter.
 
+### `pb.matches`
+
+Matches a path or string against a glob pattern. The function is curried: it takes the pattern first, and returns a function that takes the path or string to test and returns a boolean.
+
+Syntax:
+```pbb
+pb.matches pattern subject
+```
+
+- `pattern`: a string containing a glob pattern
+- `subject`: a path or a string to match against the pattern
+
+Returns `true` if `subject` matches `pattern`, otherwise `false`. An invalid pattern, or a `pattern` that isn't a string, is an error, as is a `subject` that is neither a path nor a string.
+
+The pattern syntax is:
+
+- `?` matches any single character except `/`
+- `*` matches any number of characters, except `/`
+- `**` matches across directories, for example `**/src/**` or `src/**/*.c`
+- `[ch]` matches one of the listed characters, and `[!ch]` any character not listed
+- `{a,b}` matches either of the alternatives
+
+The whole subject must match. A pattern without any `/` is matched against the last component of the subject only, so `*.c` matches both `main.c` and `src/main.c`. A pattern containing a `/` is matched against the whole subject, so `src/*.c` matches `src/main.c` but not `src/sub/main.c`.
+
+When the subject is a path, the part of the path below its lock boundary is matched, using `/` as separator. See [`pb.lock`](#pblock).
+
+```pbb
+|{cwd, pb, ...}|
+let
+  is_c = pb.matches "*.{c,cpp}";
+in
+  [
+    is_c (cwd / "src" / "main.c"),              # true
+    is_c "main.h",                              # false
+    pb.matches "**/src/**" (cwd / "src" / "a" / "b.c"),    # true
+  ]
+```
+
+It is typically used as a filter predicate in a [list operation](../language/4-list-operations.md):
+
+```pbb
+[ |f| f for files if |f| pb.matches "*.c" f ]
+```
+
 ## Path suffix operators
 
 File suffixes are rewritten using the `+` and `-` operators on a path, rather than a dedicated builtin:

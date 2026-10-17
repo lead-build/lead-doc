@@ -110,6 +110,21 @@ in
 
 This rewrites `main.c` to `main.o`.
 
+## Matching paths against patterns
+
+Use the builtin `pb.matches` to test whether a path matches a glob pattern. It takes the pattern first and the path second, and returns a boolean. Partially applying the pattern gives a reusable predicate, which works well together with the filter of a [map expression](4-list-operations.md).
+
+```pbb
+|{cwd, pb, ...}|
+let
+  files = [cwd / "src" / "main.c", cwd / "src" / "main.h", cwd / "src" / "util.c"];
+  is_c = pb.matches "*.c";
+in
+  [ |f| f for files if |f| is_c f ]
+```
+
+A pattern without a `/`, such as `*.c`, is compared with the file name only. A pattern with a `/` is compared with the whole path, where `*` does not cross directory boundaries, and `**` does: `**/src/*.c` matches any `.c` file directly in a directory named `src`. See the [builtin reference](../language-reference/builtins.md#pbmatches) for the full pattern syntax.
+
 ## Rebase paths
 
 Use the builtin `pb.rebase` to express a path relative to another base path. The result is not a path, but a string.

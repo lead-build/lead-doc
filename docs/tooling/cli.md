@@ -43,6 +43,8 @@ Options:
   -V, --version   Print version
 ```
 
+Comments are kept by the formatter. So are blank lines between expressions, but runs of more than two blank lines are collapsed to two, and blank lines at the start and end of a file are removed.
+
 ## pbls
 
 The Lead language server, for IDE integration and editor support. It is what the [VS Code extension](vscode.md) uses, and can be used from any editor supporting the Language Server Protocol.
