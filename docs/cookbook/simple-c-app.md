@@ -38,6 +38,22 @@ lib.lang.c.mod {
 }
 ```
 
+## Start and end files
+
+Some targets need objects at a fixed place on the link line, like the `crt1.o`, `crti.o` and `crtn.o` start files that a compiler driver adds when linking a hosted program. For that, `lib.lang.c.mod` has the arguments `start_src` and `end_src`:
+
+```pbb
+lib.lang.c.mod {
+    start_src = [ "${cwd}/src/crt1.S", "${cwd}/src/crti.S" ];
+    src = [ "${cwd}/src/main.c" ];
+    end_src = [ "${cwd}/src/crtn.S" ];
+}
+```
+
+They accept the same file types as `src`, and are compiled the same way. At link time, the objects from `start_src` are placed first on the link line and the objects from `end_src` last, each in the order given. Everything from `src` ends up in between, regardless of which module it came from.
+
+When a module with start or end files is used as a relocated library, they are not relocated into the library object. They are instead placed on the link line of the application that uses the library.
+
 ## Source Files
 
 The C sources used in this example:
