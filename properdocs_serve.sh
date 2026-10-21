@@ -5,4 +5,4 @@ if [ ! -d .venv ]; then
     .venv/bin/pip install -r requirements.txt
 fi
 
-.venv/bin/mkdocs serve
+.venv/bin/properdocs serve
