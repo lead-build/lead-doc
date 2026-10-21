@@ -52,5 +52,6 @@ Letting the output be an object of builds means the field names are available as
 ## See Also
 
 - [Simple C Application](simple-c-app.md) — Start here if you're new
+- [Cross Compilation](cross-compilation.md) — Targets with different compilers and architecture-specific modules
 - [Splitting Into Libraries](splitting-into-libraries.md) — Combine this with libraries
 - [Mixing Languages: C and Rust](c-and-rust.md) — Multiple languages with multiple targets

@@ -138,3 +138,7 @@ in
 ```
 
 Combining the result of `lib.combine` with other modules is not needed; add the modules to the list before calling it.
+
+## Running tests for multiple targets
+
+Tests can be built and run for several targets in the same way, by passing one list of modules per target to `lib.test_multi_report`. See the cookbook entry [Running Tests](../cookbook/testing.md).

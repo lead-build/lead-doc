@@ -1,0 +1,15 @@
+|{ cwd, ... }|
+| lib |
+lib.merge [
+    lib.lang.c.mod {
+        inc = [ "${cwd}/src/" ];
+    },
+    # Software implementation, for the host
+    lib.gate (|self| self.config.arch == "posix") (lib.lang.c.mod {
+        src = [ "${cwd}/src/aes_sw.c" ];
+    }),
+    # Driver for the AES accelerator of the platform
+    lib.gate (|self| self.config.arch == "riscv64") (lib.lang.c.mod {
+        src = [ "${cwd}/src/aes_hw_riscv64.c" ];
+    }),
+]

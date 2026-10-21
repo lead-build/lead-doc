@@ -32,8 +32,10 @@ nav:
     - "Overview": cookbook/index.md
     - "Simple C Application": cookbook/simple-c-app.md
     - "Multiple Targets": cookbook/multiple-targets.md
+    - "Cross Compilation": cookbook/cross-compilation.md
     - "Mixing C and Rust": cookbook/c-and-rust.md
     - "Splitting Into Libraries": cookbook/splitting-into-libraries.md
+    - "Running Tests": cookbook/testing.md
 
   - "Lead Language":
     - "Intro": language/index.md
