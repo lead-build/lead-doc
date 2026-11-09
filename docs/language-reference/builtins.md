@@ -222,7 +222,21 @@ compile_rule {
 }
 ```
 
-The optional variable `deps` adds any implicit dependencies to the build, and is not passed to the rule itself. It can be either a single file/build or a list of files/builds.
+The optional variable `deps` adds any implicit dependencies to the build, and is not passed to the rule itself.
+
+`input`, `output` and `deps` can each be a single file/build, or any nesting of lists and objects of files/builds. On the Ninja command line, all files are listed depth first: list items in order and object fields in a fixed order. The build returns its `output` in the same shape as given, so parts of it can be picked out for later builds:
+
+```pbb
+compiled = compile_rule {
+  input = cwd / "src" / "main.c";
+  output = {
+    objs = [cwd / "build" / "main.o"];
+    depfile = cwd / "build" / "main.d";
+  };
+};
+```
+
+Here `compiled.objs` is a list of one build, and `compiled` as a whole can be used as `input` to another build. `output` must contain at least one file. A file that appears more than once in `output` is listed once on the Ninja build line.
 
 More information is available in the [builds](../language/6-build-rules.md) chapter.
 
