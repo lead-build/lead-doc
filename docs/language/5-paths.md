@@ -110,6 +110,33 @@ in
 
 This rewrites `main.c` to `main.o`.
 
+## Paths in strings
+
+A path can also be extended with [string interpolation](2-expressions.md#strings). When a string starts with a path, the result is a path. Text up to the first `/` is added to the last path element, as with `+`, and each part after a `/` is a new element, as with `/`.
+
+```pbb
+|{cwd, ...}|
+let
+  main = "${cwd}/src/main.c";
+  object = "${main}.o";
+in
+  object
+```
+
+Here `main` is the same path as `cwd / "src" / "main.c"`, and `object` is the path to `main.c.o`.
+
+A string that doesn't start with a path is not a path. It is text with paths embedded in it, which is useful for arguments to a command, such as `"-I${inc}"`. Text after an embedded path stays text, and is not added to the path. To use a path inside such a string, put the path in a variable of its own first:
+
+```pbb
+|{cwd, ...}|
+let
+  file = "${cwd}/myfile.txt";
+in
+  "SOMEVAR=${file}"
+```
+
+Writing `"SOMEVAR=${cwd}/myfile.txt"` instead would embed the path `cwd`, followed by the text `/myfile.txt`.
+
 ## Matching paths against patterns
 
 Use the builtin `pb.matches` to test whether a path matches a glob pattern. It takes the pattern first and the path second, and returns a boolean. Partially applying the pattern gives a reusable predicate, which works well together with the filter of a [map expression](4-list-operations.md).
