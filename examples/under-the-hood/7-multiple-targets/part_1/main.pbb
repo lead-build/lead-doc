@@ -7,7 +7,7 @@ let
         config = {
             objbasedir = "${cwd}/build/release";
             srcdirs = ["${cwd}"];
-            outdir = "${cwd}/out_release";
+            outbasedir = "${cwd}/out_release";
         };
     };
     # lead-lib are using a wrapper to make the code cleaner. It's just a normal

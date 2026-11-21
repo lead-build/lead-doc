@@ -37,7 +37,7 @@ let
         config = {
             objbasedir = "${cwd}/build/release";
             srcdirs = [ "${cwd}" ];
-            outdir = "${cwd}/out_release";
+            outbasedir = "${cwd}/out_release";
         };
         c = {
             cflags = [ "-O3" ];
@@ -49,7 +49,7 @@ let
         config = {
             objbasedir = "${cwd}/build/debug";
             srcdirs = [ "${cwd}" ];
-            outdir = "${cwd}/out_debug";
+            outbasedir = "${cwd}/out_debug";
         };
         c = {
             cflags = [
@@ -104,6 +104,11 @@ lib.tk.flatten [
 
 This shows that two different `lib.build` calls are made, with different
 targets and different build directories.
+
+Each target sets its own `objbasedir` and `outbasedir`. A target can instead
+keep the base directories, for example from `lib.lang.config.simple`, and add a
+directory of its own with `config.objsubdir` and `config.outsubdir`, such as
+`outsubdir = ["debug"]`.
 
 ## Getting other outputs than the build
 

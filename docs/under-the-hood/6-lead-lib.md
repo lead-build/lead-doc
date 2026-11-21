@@ -27,6 +27,19 @@ functions and enable future extension of type checking.
 is called in lead-lib, together with setting `l.config.target_name` to define the
 name of the application.
 
+The `target` module sets where the files go. lead-lib computes
+`l.config.objdir`, the directory for object files and other intermediate files,
+as `l.config.objbasedir` followed by the directories listed in
+`l.config.objsubdir`. In the same way, `l.config.outdir`, the directory for the
+final outputs, is `l.config.outbasedir` followed by the directories listed in
+`l.config.outsubdir`. Both subdirectory lists are concatenated when modules are
+merged, and `lib.lang.c.app_build` appends the application name to
+`l.config.objsubdir`. That places the object files in `build/my_app/` and the
+application in `out/`.
+
+`lib.lang.config.simple "${cwd}"` sets `srcdirs`, `objbasedir`, and
+`outbasedir` to the same paths as the `target` module.
+
 ## Adding a language
 
 Given the flexibility of lead-lib, it is possible to add custom languages.
